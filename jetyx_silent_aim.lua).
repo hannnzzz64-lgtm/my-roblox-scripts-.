@@ -1,0 +1,474 @@
+-- ==========================================
+-- JETYXSILENTAIM | PRO + FULL ESP & BOOSTER
+-- ==========================================
+
+local cloneref = cloneref or function(o) return o end
+local Players = cloneref(game:GetService("Players"))
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = cloneref(game:GetService("RunService"))
+local UserInputService = cloneref(game:GetService("UserInputService"))
+local CoreGui = cloneref(game:GetService("CoreGui"))
+local Lighting = cloneref(game:GetService("Lighting"))
+
+local ParentGui = (pcall(function() return CoreGui:FindFirstChild("RobloxGui") end) and CoreGui) or LocalPlayer:WaitForChild("PlayerGui", 5)
+if not ParentGui then return end
+
+if ParentGui:FindFirstChild("JetyxSilentAimGUI") then
+    ParentGui.JetyxSilentAimGUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "JetyxSilentAimGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+pcall(function()
+    if syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    else
+        ScreenGui.Parent = ParentGui
+    end
+end)
+
+if not ScreenGui.Parent then
+    ScreenGui.Parent = ParentGui
+end
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 480)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -240)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(70, 40, 140)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+local BgGradient = Instance.new("UIGradient")
+BgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 18, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 12, 18))
+})
+BgGradient.Rotation = 45
+BgGradient.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -100, 0, 45)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 13
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Text = "JETYXSILENTAIM\n<font size='10' color='#a29bfe'>Pro + Full ESP & Booster</font>"
+Title.RichText = true
+Title.Parent = MainFrame
+
+local SettingBtn = Instance.new("TextButton")
+SettingBtn.Size = UDim2.new(0, 26, 0, 26)
+SettingBtn.Position = UDim2.new(1, -66, 0, 10)
+SettingBtn.BackgroundColor3 = Color3.fromRGB(40, 25, 70)
+SettingBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SettingBtn.TextSize = 12
+SettingBtn.Font = Enum.Font.GothamBold
+SettingBtn.Text = "⚙"
+SettingBtn.Parent = MainFrame
+local SettingCorner = Instance.new("UICorner") SettingCorner.CornerRadius = UDim.new(0, 6) SettingCorner.Parent = SettingBtn
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -34, 0, 10)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 80)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 11
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.Parent = MainFrame
+local CloseCorner = Instance.new("UICorner") CloseCorner.CornerRadius = UDim.new(0, 6) CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(1, -20, 1, -60)
+Container.Position = UDim2.new(0, 10, 0, 50)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 4.8, 0)
+Container.ScrollBarThickness = 2
+Container.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 6)
+UIList.Parent = Container
+
+-- Variabel Fitur Hitbox, FOV, & Aim Line
+local MasterHitbox = true
+local EnableHitboxHead = false
+local HitboxSizeValue = 2
+local HitboxTransparency = 0.5
+
+local ShowFOVCircle = false
+local FOVSizeValue = 250
+local FOVModeVal = "PC"
+local ShowAimLine = false
+
+-- Variabel Full ESP & FPS Booster
+local EnableESPBox = false
+local EnableESPName = false
+local EnableESPHealth = false
+local EnableESPDistance = false
+local EnableESPLine = false
+local EnableFPSBooster = false
+
+-- FOV Circle UI
+local FOVFrame = Instance.new("Frame")
+FOVFrame.Name = "FOVCircleUI"
+FOVFrame.BackgroundTransparency = 1
+FOVFrame.Visible = false
+FOVFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVFrame.Parent = ScreenGui
+
+local FOVStroke = Instance.new("UIStroke")
+FOVStroke.Color = Color3.fromRGB(255, 0, 0)
+FOVStroke.Thickness = 1.5
+FOVStroke.Parent = FOVFrame
+
+local FOVCurve = Instance.new("UICorner")
+FOVCurve.CornerRadius = UDim.new(1, 0)
+FOVCurve.Parent = FOVFrame
+
+-- Aim Line Drawing
+local AimLine = Drawing.new("Line")
+AimLine.Visible = false
+AimLine.Color = Color3.fromRGB(255, 0, 255)
+AimLine.Thickness = 1.5
+AimLine.Transparency = 1
+
+-- Penyimpanan Data ESP per Player
+local EspCache = {}
+
+local function RemoveESP(plr)
+    if EspCache[plr] then
+        if EspCache[plr].Box then EspCache[plr].Box:Remove() end
+        if EspCache[plr].NameTag then EspCache[plr].NameTag:Remove() end
+        if EspCache[plr].HealthBar then EspCache[plr].HealthBar:Remove() end
+        if EspCache[plr].HealthBarBg then EspCache[plr].HealthBarBg:Remove() end
+        if EspCache[plr].TracerLine then EspCache[plr].TracerLine:Remove() end
+        EspCache[plr] = nil
+    end
+end
+
+Players.PlayerRemoving:Connect(RemoveESP)
+
+-- Fungsi Mendapatkan Player Terdekat Berdasarkan FOV
+local function GetClosestPlayerInFOV()
+    local target = nil
+    local shortestDist = FOVSizeValue
+    local center = (FOVModeVal == "Mobile") and UserInputService:GetMouseLocation() or (Camera.ViewportSize / 2)
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            local part = v.Character:FindFirstChild("Head") or v.Character:FindFirstChild("HumanoidRootPart")
+            if part then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local magnitude = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                    if magnitude < shortestDist then
+                        shortestDist = magnitude
+                        target = part
+                    end
+                end
+            end
+        end
+    end
+    return target
+end
+
+-- Builder UI Menu
+local function CreateSectionHeader(text)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 32)
+    Frame.BackgroundColor3 = Color3.fromRGB(22, 18, 38)
+    Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -50, 1, 0) Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 11 Label.Font = Enum.Font.GothamBold Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = text Label.Parent = Frame
+
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(0, 32, 0, 18) ToggleBtn.Position = UDim2.new(1, -40, 0.5, -9)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(114, 9, 183) ToggleBtn.Text = "" ToggleBtn.Parent = Frame
+    local TCorner = Instance.new("UICorner") TCorner.CornerRadius = UDim.new(1, 0) TCorner.Parent = ToggleBtn
+
+    local state = true
+    ToggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        ToggleBtn.BackgroundColor3 = state and Color3.fromRGB(114, 9, 183) or Color3.fromRGB(45, 45, 60)
+        MasterHitbox = state
+    end)
+end
+
+local function CreateCheckbox(text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 28) Btn.BackgroundColor3 = Color3.fromRGB(18, 14, 30)
+    Btn.TextColor3 = Color3.fromRGB(200, 200, 200) Btn.TextSize = 11 Btn.Font = Enum.Font.Gotham
+    Btn.TextXAlignment = Enum.TextXAlignment.Left Btn.Text = "    [   ]  " .. text Btn.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Btn
+
+    local state = false
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        Btn.TextColor3 = state and Color3.fromRGB(170, 160, 255) or Color3.fromRGB(200, 200, 200)
+        Btn.Text = state and "    [ ✓ ]  " .. text or "    [   ]  " .. text
+        pcall(function() callback(state) end)
+    end)
+end
+
+local function CreateDropdown(title, options, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 30) Frame.BackgroundColor3 = Color3.fromRGB(18, 14, 30) Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0, 150, 1, 0) Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(170, 170, 170)
+    Label.TextSize = 11 Label.Font = Enum.Font.Gotham Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = title Label.Parent = Frame
+
+    local DropBtn = Instance.new("TextButton")
+    DropBtn.Size = UDim2.new(0, 120, 0, 22) DropBtn.Position = UDim2.new(1, -128, 0.5, -11)
+    DropBtn.BackgroundColor3 = Color3.fromRGB(50, 30, 80) DropBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DropBtn.TextSize = 10 DropBtn.Font = Enum.Font.GothamBold DropBtn.Text = options[1] .. "  v" DropBtn.Parent = Frame
+    local DropCorner = Instance.new("UICorner") DropCorner.CornerRadius = UDim.new(0, 4) DropCorner.Parent = DropBtn
+
+    local idx = 1
+    DropBtn.MouseButton1Click:Connect(function()
+        idx = idx % #options + 1
+        DropBtn.Text = options[idx] .. "  v"
+        pcall(function() callback(options[idx]) end)
+    end)
+end
+
+local function CreateSlider(title, min, max, default, suffix, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 42) Frame.BackgroundColor3 = Color3.fromRGB(18, 14, 30) Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -20, 0, 18) Label.Position = UDim2.new(0, 10, 0, 3)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(170, 170, 170)
+    Label.TextSize = 11 Label.Font = Enum.Font.Gotham Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = title Label.Parent = Frame
+
+    local ValLabel = Instance.new("TextLabel")
+    ValLabel.Size = UDim2.new(1, -20, 0, 18) ValLabel.Position = UDim2.new(0, -10, 0, 3)
+    ValLabel.BackgroundTransparency = 1 ValLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ValLabel.TextSize = 11 ValLabel.Font = Enum.Font.GothamBold ValLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValLabel.Text = default .. " " .. suffix ValLabel.Parent = Frame
+
+    local Bar = Instance.new("TextButton")
+    Bar.Size = UDim2.new(1, -20, 0, 5) Bar.Position = UDim2.new(0, 10, 0, 26)
+    Bar.BackgroundColor3 = Color3.fromRGB(40, 30, 60) Bar.Text = "" Bar.Parent = Frame
+    local BCorner = Instance.new("UICorner") BCorner.CornerRadius = UDim.new(1, 0) BCorner.Parent = Bar
+
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(114, 9, 183) Fill.BorderSizePixel = 0 Fill.Parent = Bar
+    local FCorner = Instance.new("UICorner") FCorner.CornerRadius = UDim.new(1, 0) FCorner.Parent = Fill
+
+    local dragging = false
+    Bar.MouseButton1Down:Connect(function() dragging = true end)
+    UserInputService.InputEnded:Connect(function(inp) if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+    UserInputService.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            local loc = UserInputService:GetMouseLocation()
+            local pos = math.clamp((loc.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
+            Fill.Size = UDim2.new(pos, 0, 1, 0)
+            local val = math.floor((min + (max - min) * pos) * 10) / 10
+            ValLabel.Text = val .. " " .. suffix
+            pcall(function() callback(val) end)
+        end
+    end)
+end
+
+-- Render Menu Sesuai Tampilan
+CreateSectionHeader("Hitbox Expander (Head)")
+CreateCheckbox("Enable Head Expander", function(state) EnableHitboxHead = state end)
+CreateSlider("Hitbox Size", 1, 5, 2, "x", function(val) HitboxSizeValue = val end)
+CreateSlider("Hitbox Transparency", 0, 1, 0.5, "", function(val) HitboxTransparency = val end)
+
+CreateSectionHeader("FOV & Aim Line Settings")
+CreateCheckbox("Show FOV Circle", function(state) ShowFOVCircle = state end)
+CreateSlider("FOV Size", 50, 500, 250, "px", function(val) FOVSizeValue = val end)
+CreateDropdown("FOV Mode", {"PC", "Mobile"}, function(val) FOVModeVal = val end)
+CreateCheckbox("Show Aim Line", function(state) ShowAimLine = state end)
+
+CreateSectionHeader("Full Visuals & ESP")
+CreateCheckbox("Enable ESP Box", function(state) EnableESPBox = state end)
+CreateCheckbox("Enable ESP Name", function(state) EnableESPName = state end)
+CreateCheckbox("Enable ESP Health Bar", function(state) EnableESPHealth = state end)
+CreateCheckbox("Enable ESP Distance", function(state) EnableESPDistance = state end)
+CreateCheckbox("Enable ESP Tracer Line", function(state) EnableESPLine = state end)
+
+CreateSectionHeader("Performance Booster")
+CreateCheckbox("Enable FPS Booster", function(state)
+    EnableFPSBooster = state
+    if EnableFPSBooster then
+        pcall(function()
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 9e9
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.Material = Enum.Material.SmoothPlastic
+                    v.Reflectance = 0
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Transparency = 1
+                end
+            end
+        end)
+    end
+end)
+
+-- Loop Utama Render (Hitbox, FOV Circle, Aim Line, & Full ESP)
+RunService.RenderStepped:Connect(function()
+    -- Hitbox Expander Head Logic (Aman untuk damage, tidak membuat musuh kebal/diam)
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character then
+            local head = v.Character:FindFirstChild("Head")
+            local humanoid = v.Character:FindFirstChildOfClass("Humanoid")
+            if head and humanoid and humanoid.Health > 0 then
+                if MasterHitbox and EnableHitboxHead then
+                    head.Size = Vector3.new(HitboxSizeValue, HitboxSizeValue, HitboxSizeValue)
+                    head.Transparency = HitboxTransparency
+                    head.CanCollide = false
+                    head.Massless = true
+                else
+                    head.Size = Vector3.new(2, 1, 1)
+                    head.Transparency = 0
+                    head.CanCollide = true
+                    head.Massless = false
+                end
+            end
+        end
+    end
+
+    -- FOV Circle Logic
+    if ShowFOVCircle then
+        FOVFrame.Visible = true
+        FOVFrame.Size = UDim2.new(0, FOVSizeValue * 2, 0, FOVSizeValue * 2)
+        if FOVModeVal == "Mobile" then
+            local mouseLoc = UserInputService:GetMouseLocation()
+            FOVFrame.Position = UDim2.new(0, mouseLoc.X, 0, mouseLoc.Y)
+        else
+            local viewportCenter = Camera.ViewportSize / 2
+            FOVFrame.Position = UDim2.new(0, viewportCenter.X, 0, viewportCenter.Y)
+        end
+    else
+        FOVFrame.Visible = false
+    end
+
+    -- Aim Line Logic
+    if ShowAimLine then
+        local target = GetClosestPlayerInFOV()
+        if target then
+            local screenPos, onScreen = Camera:WorldToViewportPoint(target.Position)
+            if onScreen then
+                AimLine.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                AimLine.To = Vector2.new(screenPos.X, screenPos.Y)
+                AimLine.Visible = true
+            else
+                AimLine.Visible = false
+            end
+        else
+            AimLine.Visible = false
+        end
+    else
+        AimLine.Visible = false
+    end
+
+    -- Full ESP Rendering Logic
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            if not EspCache[v] then
+                EspCache[v] = {
+                    Box = Drawing.new("Square"),
+                    NameTag = Drawing.new("Text"),
+                    HealthBarBg = Drawing.new("Square"),
+                    HealthBar = Drawing.new("Square"),
+                    TracerLine = Drawing.new("Line")
+                }
+                
+                -- Box Config
+                EspCache[v].Box.Visible = false
+                EspCache[v].Box.Thickness = 1.5
+                EspCache[v].Box.Color = Color3.fromRGB(0, 255, 255)
+                EspCache[v].Box.Filled = false
+
+                -- Name / Info Config
+                EspCache[v].NameTag.Visible = false
+                EspCache[v].NameTag.Size = 13
+                EspCache[v].NameTag.Center = true
+                EspCache[v].NameTag.Outline = true
+                EspCache[v].NameTag.Color = Color3.fromRGB(255, 255, 255)
+
+                -- Health Bar Background Config
+                EspCache[v].HealthBarBg.Visible = false
+                EspCache[v].HealthBarBg.Thickness = 1
+                EspCache[v].HealthBarBg.Color = Color3.fromRGB(0, 0, 0)
+                EspCache[v].HealthBarBg.Filled = true
+
+                -- Health Bar Config
+                EspCache[v].HealthBar.Visible = false
+                EspCache[v].HealthBar.Thickness = 1
+                EspCache[v].HealthBar.Color = Color3.fromRGB(0, 255, 0)
+                EspCache[v].HealthBar.Filled = true
+
+                -- Tracer Line Config
+                EspCache[v].TracerLine.Visible = false
+                EspCache[v].TracerLine.Thickness = 1.5
+                EspCache[v].TracerLine.Color = Color3.fromRGB(255, 255, 255)
+            end
+
+            local cache = EspCache[v]
+            local char = v.Character
+            local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+            if char and rootPart and humanoid and humanoid.Health > 0 then
+                local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+                if onScreen then
+                    local sizeFactor = math.clamp(1000 / (Camera.CFrame.Position - rootPart.Position).Magnitude, 0.3, 5)
+                    local width = math.floor(25 * sizeFactor)
+                    local height = math.floor(35 * sizeFactor)
+                    local topLeft = Vector2.new(pos.X - width / 2, pos.Y - height / 2)
+
+                    -- ESP Box
+                    if EnableESPBox then
+                        cache.Box.Size = Vector2.new(width, height)
+                        cache.Box.Position = topLeft
+                        cache.Box.Visible = true
+                    else
+                        cache.Box.Visible = false
+                    end
+
+                    -- ESP Name & Distance
+                    if EnableESPName or EnableESPDistance then
+                        local textDisplay = v.Name
+                        if EnableESPDistance then
+                            local dist = math.floor((Camera.CFrame.Position - rootPart.Position).Magnitude)
+        
