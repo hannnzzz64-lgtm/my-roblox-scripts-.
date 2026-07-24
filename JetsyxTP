@@ -1,0 +1,484 @@
+-- ==========================================
+-- JETYXSILENTAIM | SOUTH BRONX: THE TRENCHES JetyxTp
+-- + Mega Hitbox, Low Graphic Mode & Keybind [Z]
+-- ==========================================
+localPlayer=Teleoort Togglegsmid
+localPlayer = Teleport gs ujung
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local Terrain = workspace:FindFirstChildOfClass("Terrain")
+
+local ParentGui = (pcall(function() return CoreGui:FindFirstChild("RobloxGui") end) and CoreGui) or LocalPlayer:FindFirstChildOfClass("PlayerGui")
+if not ParentGui then return end
+
+if ParentGui:FindFirstChild("JetyxSouthBronxGUI") then
+    ParentGui.JetyxSouthBronxGUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "JetyxSouthBronxGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+pcall(function()
+    if syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    elseif protectgui then
+        protectgui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    else
+        ScreenGui.Parent = ParentGui
+    end
+end)
+
+if not ScreenGui.Parent then
+    ScreenGui.Parent = ParentGui
+end
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -190)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(140, 40, 40)
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+local BgGradient = Instance.new("UIGradient")
+BgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 18, 18)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 12, 18))
+})
+BgGradient.Rotation = 45
+BgGradient.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -100, 0, 45)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 13
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Text = "SOUTH BRONX: THE TRENCHES\n<font size='10' color='#ff9b9b'>Mega Hitbox, Low Graphic & Keybind [Z]</font>"
+Title.RichText = true
+Title.Parent = MainFrame
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -34, 0, 10)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(80, 30, 30)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 11
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "X"
+CloseBtn.Parent = MainFrame
+local CloseCorner = Instance.new("UICorner") CloseCorner.CornerRadius = UDim.new(0, 6) CloseCorner.Parent = CloseBtn
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+local Container = Instance.new("ScrollingFrame")
+Container.Size = UDim2.new(1, -20, 1, -60)
+Container.Position = UDim2.new(0, 10, 0, 50)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 5.0, 0)
+Container.ScrollBarThickness = 2
+Container.Parent = MainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 6)
+UIList.Parent = Container
+
+-- Variabel Fitur
+local EnableAimbot = false
+local AimbotSmoothness = 5
+local ShowFOVCircle = false
+local FOVSizeValue = 250
+local FOVModeVal = "PC"
+
+-- Variabel Mega Hitbox Expender
+local EnableHeadExpender = false
+local HeadSizeValue = 15.0
+
+-- Variabel Low Graphic
+local EnableLowGraphic = false
+
+-- Variabel ESP
+local EnableESPBox = false
+local EnableESPName = false
+local EnableESPHealth = false
+local EnableESPDistance = false
+
+-- Keybind [Z] untuk Toggle Menu
+local MenuVisible = true
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Z then
+        MenuVisible = not MenuVisible
+        MainFrame.Visible = MenuVisible
+    end
+end)
+
+-- FOV Circle UI
+local FOVFrame = Instance.new("Frame")
+FOVFrame.Name = "FOVCircleUI"
+FOVFrame.BackgroundTransparency = 1
+FOVFrame.Visible = false
+FOVFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVFrame.Parent = ScreenGui
+
+local FOVStroke = Instance.new("UIStroke")
+FOVStroke.Color = Color3.fromRGB(255, 50, 50)
+FOVStroke.Thickness = 1.5
+FOVStroke.Parent = FOVFrame
+
+local FOVCurve = Instance.new("UICorner")
+FOVCurve.CornerRadius = UDim.new(1, 0)
+FOVCurve.Parent = FOVFrame
+
+local EspCache = {}
+
+local function RemoveESP(plr)
+    if EspCache[plr] then
+        pcall(function()
+            if EspCache[plr].Box then EspCache[plr].Box:Remove() end
+            if EspCache[plr].NameTag then EspCache[plr].NameTag:Remove() end
+            if EspCache[plr].HealthBar then EspCache[plr].HealthBar:Remove() end
+            if EspCache[plr].HealthBarBg then EspCache[plr].HealthBarBg:Remove() end
+        end)
+        EspCache[plr] = nil
+    end
+end
+
+Players.PlayerRemoving:Connect(RemoveESP)
+
+local function GetClosestPlayerInFOV()
+    local target = nil
+    local shortestDist = FOVSizeValue
+    local center = (FOVModeVal == "Mobile") and UserInputService:GetMouseLocation() or (Camera.ViewportSize / 2)
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            local part = v.Character:FindFirstChild("Head") or v.Character:FindFirstChild("HumanoidRootPart")
+            if part then
+                local screenPos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local magnitude = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
+                    if magnitude < shortestDist then
+                        shortestDist = magnitude
+                        target = part
+                    end
+                end
+            end
+        end
+    end
+    return target
+end
+
+-- Fungsi Safe Teleport (Aman, Lambat & Anti-Stuck)
+local function SafeTeleportTo(targetPosition)
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local rootPart = char.HumanoidRootPart
+        local distance = (rootPart.Position - targetPosition).Magnitude
+        
+        local speed = 45 
+        local duration = math.clamp(distance / speed, 1.5, 6.0) 
+
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(rootPart, tweenInfo, {CFrame = CFrame.new(targetPosition + Vector3.new(0, 3, 0))})
+        
+        local oldState = {}
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                oldState[part] = part.CanCollide
+                part.CanCollide = false
+            end
+        end
+        
+        tween:Play()
+        tween.Completed:Wait()
+
+        for part, canCollide in pairs(oldState) do
+            if part and part.Parent then
+                part.CanCollide = canCollide
+            end
+        end
+    end
+end
+
+local function CreateSectionHeader(text)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 32)
+    Frame.BackgroundColor3 = Color3.fromRGB(38, 18, 18)
+    Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -10, 1, 0) Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 11 Label.Font = Enum.Font.GothamBold Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = text Label.Parent = Frame
+end
+
+local function CreateCheckbox(text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 28) Btn.BackgroundColor3 = Color3.fromRGB(22, 14, 14)
+    Btn.TextColor3 = Color3.fromRGB(200, 200, 200) Btn.TextSize = 11 Btn.Font = Enum.Font.Gotham
+    Btn.TextXAlignment = Enum.TextXAlignment.Left Btn.Text = "    [   ]  " .. text Btn.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Btn
+
+    local state = false
+    Btn.MouseButton1Click:Connect(function()
+        state = not state
+        Btn.TextColor3 = state and Color3.fromRGB(255, 160, 160) or Color3.fromRGB(200, 200, 200)
+        Btn.Text = state and "    [ ✓ ]  " .. text or "    [   ]  " .. text
+        pcall(function() callback(state) end)
+    end)
+end
+
+local function CreateButton(text, callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 30) Btn.BackgroundColor3 = Color3.fromRGB(80, 30, 30)
+    Btn.TextColor3 = Color3.fromRGB(255, 255, 255) Btn.TextSize = 11 Btn.Font = Enum.Font.GothamBold
+    Btn.Text = text Btn.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Btn
+
+    Btn.MouseButton1Click:Connect(function()
+        pcall(callback)
+    end)
+end
+
+local function CreateDropdown(title, options, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 30) Frame.BackgroundColor3 = Color3.fromRGB(22, 14, 14) Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0, 150, 1, 0) Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(170, 170, 170)
+    Label.TextSize = 11 Label.Font = Enum.Font.Gotham Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = title Label.Parent = Frame
+
+    local DropBtn = Instance.new("TextButton")
+    DropBtn.Size = UDim2.new(0, 120, 0, 22) DropBtn.Position = UDim2.new(1, -128, 0.5, -11)
+    DropBtn.BackgroundColor3 = Color3.fromRGB(80, 30, 30) DropBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DropBtn.TextSize = 10 DropBtn.Font = Enum.Font.GothamBold DropBtn.Text = options[1] .. "  v" DropBtn.Parent = Frame
+    local DropCorner = Instance.new("UICorner") DropCorner.CornerRadius = UDim.new(0, 4) DropCorner.Parent = DropBtn
+
+    local idx = 1
+    DropBtn.MouseButton1Click:Connect(function()
+        idx = idx % #options + 1
+        DropBtn.Text = options[idx] .. "  v"
+        pcall(function() callback(options[idx]) end)
+    end)
+end
+
+local function CreateSlider(title, min, max, default, suffix, callback)
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 0, 42) Frame.BackgroundColor3 = Color3.fromRGB(22, 14, 14) Frame.Parent = Container
+    local Corner = Instance.new("UICorner") Corner.CornerRadius = UDim.new(0, 6) Corner.Parent = Frame
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -20, 0, 18) Label.Position = UDim2.new(0, 10, 0, 3)
+    Label.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(170, 170, 170)
+    Label.TextSize = 11 Label.Font = Enum.Font.Gotham Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Text = title Label.Parent = Frame
+
+    local ValLabel = Instance.new("TextLabel")
+    ValLabel.Size = UDim2.new(1, -20, 0, 18) ValLabel.Position = UDim2.new(0, -10, 0, 3)
+    ValLabel.BackgroundTransparency = 1 Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    ValLabel.TextSize = 11 ValLabel.Font = Enum.Font.GothamBold ValLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValLabel.Text = default .. " " .. suffix ValLabel.Parent = Frame
+
+    local Bar = Instance.new("TextButton")
+    Bar.Size = UDim2.new(1, -20, 0, 5) Bar.Position = UDim2.new(0, 10, 0, 26)
+    Bar.BackgroundColor3 = Color3.fromRGB(60, 30, 30) Bar.Text = "" Bar.Parent = Frame
+    local BCorner = Instance.new("UICorner") BCorner.CornerRadius = UDim.new(1, 0) BCorner.Parent = Bar
+
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    Fill.BackgroundColor3 = Color3.fromRGB(183, 9, 9) Fill.BorderSizePixel = 0 Fill.Parent = Bar
+    local FCorner = Instance.new("UICorner") FCorner.CornerRadius = UDim.new(1, 0) FCorner.Parent = Fill
+
+    local dragging = false
+    Bar.MouseButton1Down:Connect(function() dragging = true end)
+    UserInputService.InputEnded:Connect(function(inp) if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+    UserInputService.InputChanged:Connect(function(inp)
+        if dragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+            local loc = UserInputService:GetMouseLocation()
+            local pos = math.clamp((loc.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
+            Fill.Size = UDim2.new(pos, 0, 1, 0)
+            local val = math.floor((min + (max - min) * pos) * 10) / 10
+            ValLabel.Text = val .. " " .. suffix
+            pcall(function() callback(val) end)
+        end
+    end)
+end
+
+-- Susunan Menu UI
+CreateSectionHeader("South Bronx Safe Teleport (GS)")
+CreateButton("Safe TP ke GS Ujung", function()
+    SafeTeleportTo(Vector3.new(-125, 15, -450))
+end)
+-- Koordinat diperbarui tepat di depan pintu Bronx Firearms sesuai video
+CreateButton("Safe TP ke GS Mid (Bronx Firearms)", function()
+    SafeTeleportTo(Vector3.new(-15.2, 14.8, -125.6))
+end)
+
+CreateSectionHeader("Mega Hitbox / Head Expender")
+CreateCheckbox("Enable Mega Hitbox Head", function(state) EnableHeadExpender = state end)
+CreateSlider("Head Size Value", 2, 25, 15.0, "x", function(val) HeadSizeValue = val end)
+
+CreateSectionHeader("Graphics Settings")
+CreateCheckbox("Enable Low Graphic Mode", function(state) 
+    EnableLowGraphic = state 
+    if state then
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 2
+        Lighting.FogEnd = 9e9
+        if Terrain then
+            Terrain.WaterWaveSize = 0
+            Terrain.WaterWaveTransparency = 1
+            Terrain.WaterReflectance = 0
+        end
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.SmoothPlastic
+                v.Reflectance = 0
+            elseif v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                v.Enabled = false
+            end
+        end
+    end
+end)
+
+CreateSectionHeader("Aimbot & FOV Settings")
+CreateCheckbox("Enable Aimbot", function(state) EnableAimbot = state end)
+CreateSlider("Aimbot Smoothness", 1, 20, 5, "x", function(val) AimbotSmoothness = val end)
+CreateCheckbox("Show FOV Circle", function(state) ShowFOVCircle = state end)
+CreateSlider("FOV Size", 50, 500, 250, "px", function(val) FOVSizeValue = val end)
+CreateDropdown("FOV Mode", {"PC", "Mobile"}, function(val) FOVModeVal = val end)
+
+CreateSectionHeader("ESP Visuals")
+CreateCheckbox("Enable ESP Box", function(state) EnableESPBox = state end)
+CreateCheckbox("Enable ESP Name", function(state) EnableESPName = state end)
+CreateCheckbox("Enable ESP Health Bar", function(state) EnableESPHealth = state end)
+CreateCheckbox("Enable ESP Distance", function(state) EnableESPDistance = state end)
+
+RunService.RenderStepped:Connect(function()
+    if EnableHeadExpender then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+                local head = v.Character:FindFirstChild("Head")
+                if head then
+                    head.Size = Vector3.new(HeadSizeValue, HeadSizeValue, HeadSizeValue)
+                    head.Transparency = 0.4
+                    head.CanCollide = false
+                end
+            end
+        end
+    end
+
+    if EnableAimbot then
+        local target = GetClosestPlayerInFOV()
+        if target then
+            local cam = workspace.CurrentCamera
+            local targetPos = target.Position
+            cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, targetPos), 1 / AimbotSmoothness)
+        end
+    end
+
+    if ShowFOVCircle then
+        FOVFrame.Visible = true
+        FOVFrame.Size = UDim2.new(0, FOVSizeValue * 2, 0, FOVSizeValue * 2)
+        if FOVModeVal == "Mobile" then
+            local mouseLoc = UserInputService:GetMouseLocation()
+            FOVFrame.Position = UDim2.new(0, mouseLoc.X, 0, mouseLoc.Y)
+        else
+            local viewportCenter = Camera.ViewportSize / 2
+            FOVFrame.Position = UDim2.new(0, viewportCenter.X, 0, viewportCenter.Y)
+        end
+    else
+        FOVFrame.Visible = false
+    end
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            if not EspCache[v] and Drawing then
+                pcall(function()
+                    EspCache[v] = {
+                        Box = Drawing.new("Square"),
+                        NameTag = Drawing.new("Text"),
+                        HealthBarBg = Drawing.new("Square"),
+                        HealthBar = Drawing.new("Square")
+                    }
+                    
+                    EspCache[v].Box.Visible = false
+                    EspCache[v].Box.Thickness = 1.5
+                    EspCache[v].Box.Color = Color3.fromRGB(255, 50, 50)
+                    EspCache[v].Box.Filled = false
+
+                    EspCache[v].NameTag.Visible = false
+                    EspCache[v].NameTag.Size = 13
+                    EspCache[v].NameTag.Center = true
+                    EspCache[v].NameTag.Outline = true
+                    EspCache[v].NameTag.Color = Color3.fromRGB(255, 255, 255)
+
+                    EspCache[v].HealthBarBg.Visible = false
+                    EspCache[v].HealthBarBg.Thickness = 1
+                    EspCache[v].HealthBarBg.Color = Color3.fromRGB(0, 0, 0)
+                    EspCache[v].HealthBarBg.Filled = true
+
+                    EspCache[v].HealthBar.Visible = false
+                    EspCache[v].HealthBar.Thickness = 1
+                    EspCache[v].HealthBar.Color = Color3.fromRGB(0, 255, 0)
+                    EspCache[v].HealthBar.Filled = true
+                end)
+            end
+
+            local cache = EspCache[v]
+            local char = v.Character
+            local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+            if cache and char and rootPart and humanoid and humanoid.Health > 0 then
+                local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+                if onScreen then
+                    local sizeFactor = math.clamp(1000 / (Camera.CFrame.Position - rootPart.Position).Magnitude, 0.3, 5)
+                    local width = math.floor(25 * sizeFactor)
+                    local height = math.floor(35 * sizeFactor)
+                    local topLeft = Vector2.new(pos.X - width / 2, pos.Y - height / 2)
+
+                    if EnableESPBox then
+                        cache.Box.Size = Vector2.new(width, height)
+                        cache.Box.Position = topLeft
+                        cache.Box.Visible = true
+                    else
+                        cache.Box.Visible = false
+                    end
+
+                    if EnableESPName or EnableESPDistance then
+                        local textDisplay = v.Name
+                        if EnableESPDistance then
+     
