@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ram2Junior 7 v5.3 - Full Navigation</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 30px 28px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2a3a6a;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 2px solid #1a2a4a;
+            padding-bottom: 18px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e94560, #f5a623, #e94560);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .nav-info {
+            display: flex;
+            gap: 14px;
+            font-size: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-info span {
+            background: rgba(15, 52, 96, 0.7);
+            padding: 6px 18px;
+            border-radius: 25px;
+            border: 1px solid #2a4a7a;
+            font-weight: 600;
+            color: #c8d6e5;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+
+        .nav-info span:hover {
+            border-color: #e94560;
+            background: rgba(233, 69, 96, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .nav-info span::before {
+            content: "👤";
+            font-size: 16px;
+        }
+
+        /* ===== STATISTIK ===== */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 18px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-left: 4px solid #e94560;
+        }
+
+        .stats .total-data {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .stats .total-data strong {
+            color: #f5a623;
+            font-size: 18px;
+        }
+
+        .stats .page-info {
+            font-size: 14px;
+            background: #0f3460;
+            padding: 4px 16px;
+            border-radius: 20px;
+            color: #fff;
+        }
+
+        /* ===== CONTENT AREA ===== */
+        .content-area {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 22px;
+            min-height: 180px;
+            border: 1px solid #1a2a4a;
+            transition: 0.3s;
+        }
+
+        .content-area h3 {
+            color: #f5a623;
+            margin-bottom: 12px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-area h3::after {
+            content: "📊";
+            font-size: 22px;
+        }
+
+        .data-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .data-item {
+            background: rgba(15, 52, 96, 0.3);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border-left: 3px solid #e94560;
+            font-size: 14px;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .data-item:hover {
+            background: rgba(233, 69, 96, 0.15);
+            transform: translateX(5px);
+        }
+
+        .data-item .index {
+            color: #888;
+            font-weight: 300;
+        }
+
+        .data-item .value {
+            color: #f5a623;
+            font-weight: 600;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            padding: 12px 0;
+            margin: 6px 0;
+        }
+
+        .pagination a,
+        .pagination .page-dots {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            background: rgba(26, 26, 62, 0.8);
+            border-radius: 10px;
+            text-decoration: none;
+            color: #c8d6e5;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .pagination a:hover {
+            background: #e94560;
+            color: #fff;
+            transform: scale(1.08);
+            border-color: #e94560;
+            box-shadow: 0 0 25px rgba(233, 69, 96, 0.3);
+        }
+
+        .pagination a.active {
+            background: #e94560;
+            color: #fff;
+            border-color: #e94560;
+            box-shadow: 0 0 30px rgba(233, 69, 96, 0.4);
+            font-weight: 700;
+            transform: scale(1.05);
+        }
+
+        .pagination .page-dots {
+            cursor: default;
+            opacity: 0.4;
+            background: transparent;
+            border: none;
+            min-width: 30px;
+        }
+
+        /* ===== FOOTER NAV ===== */
+        .footer-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 2px solid #1a2a4a;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .footer-nav .info {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .footer-nav .info strong {
+            color: #e94560;
+            font-size: 18px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-group button {
+            padding: 9px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #0f3460;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+
+        .btn-group button:hover:not(:disabled) {
+            background: #e94560;
+            transform: scale(1.05);
+            border-color: #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.2);
+        }
+
+        .btn-group button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            background: #1a1a3e;
+        }
+
+        .goto {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 12px 4px 16px;
+            border-radius: 30px;
+            border: 1px solid #1a2a4a;
+        }
+
+        .goto label {
+            color: #888;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .goto input {
+            width: 65px;
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1px solid #1a2a4a;
+            background: #0a0a1a;
+            color: #fff;
+            text-align: center;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .goto input:focus {
+            border-color: #e94560;
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.15);
+        }
+
+        .goto button {
+            padding: 7px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #e94560;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            font-size: 13px;
+        }
+
+        .goto button:hover {
+            background: #c73652;
+            transform: scale(1.05);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 18px 14px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .pagination a,
+            .pagination .page-dots {
+                min-width: 34px;
+                height: 34px;
+                font-size: 12px;
+                padding: 0 8px;
+                border-radius: 8px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .footer-nav {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-group {
+                justify-content: center;
+            }
+
+            .goto {
+                justify-content: center;
+                padding: 8px 14px;
+            }
+
+            .data-list {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pagination a,
+            .pagination .page-dots {
+                min-width: 30px;
+                height: 30px;
+                font-size: 11px;
+                padding: 0 5px;
+            }
+
+            .btn-group button {
+                padding: 7px 14px;
+                font-size: 12px;
+            }
+
+            .goto input {
+                width: 55px;
+                padding: 5px 8px;
+                font-size: 12px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f0f1a;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a3a6a;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e94560;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <div class="title">📄 Ram2Junior 7 v5.3</div>
+            <div class="nav-info">
+                <span>AmboniND</span>
+                <span>Twizm24</span>
+            </div>
+        </div>
+
+        <!-- ===== STATISTIK ===== -->
+        <div class="stats">
+            <div class="total-data">
+                📦 Total Data: <strong id="totalDataCount">7,620</strong> item
+            </div>
+            <div class="page-info">
+                📄 Halaman <span id="statCurrentPage">1</span> dari <span id="statTotalPages">762</span>
+            </div>
+        </div>
+
+        <!-- ===== CONTENT AREA ===== -->
+        <div class="content-area" id="contentArea">
+            <h3>Data Halaman <span id="contentPageTitle">1</span></h3>
+            <div class="data-list" id="dataList">
+                <!-- Data akan di-generate oleh JavaScript -->
+            </div>
+        </div>
+
+        <!-- ===== PAGINATION ===== -->
+        <div class="pagination" id="paginationContainer">
+            <!-- Di-generate oleh JavaScript -->
+        </div>
+
+        <!-- ===== FOOTER NAV ===== -->
+        <div class="footer-nav">
+            <div class="info">
+                <strong id="currentPageDisplay">1</strong> / <span id="totalPagesDisplay">762</span>
+            </div>
+            <div class="btn-group">
+                <button id="prevBtn">◀ Prev</button>
+                <button id="nextBtn">Next ▶</button>
+                <button id="firstBtn">⏮ First</button>
+                <button id="lastBtn">Last ⏭</button>
+            </div>
+            <div class="goto">
+                <label for="pageInput">Go to</label>
+                <input type="number" id="pageInput" min="1" max="762" value="1">
+                <button id="goBtn">Go</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ===== KONFIGURASI =====
+            const TOTAL_PAGES = 762;
+            const ITEMS_PER_PAGE = 10;
+            const VISIBLE_RANGE = 7;
+
+            // ===== STATE =====
+            let currentPage = 1;
+
+            // ===== DOM REFS =====
+            const container = document.getElementById('paginationContainer');
+            const dataList = document.getElementById('dataList');
+            const contentPageTitle = document.getElementById('contentPageTitle');
+            const currentPageDisplay = document.getElementById('currentPageDisplay');
+            const totalPagesDisplay = document.getElementById('totalPagesDisplay');
+            const statCurrentPage = document.getElementById('statCurrentPage');
+            const statTotalPages = document.getElementById('statTotalPages');
+            const totalDataCount = document.getElementById('totalDataCount');
+
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const firstBtn = document.getElementById('firstBtn');
+            const lastBtn = document.getElementById('lastBtn');
+            const pageInput = document.getElementById('pageInput');
+            const goBtn = document.getElementById('goBtn');
+
+            // ===== GENERATE DATA DUMMY =====
+            function generateDummyData(totalItems) {
+                const data = [];
+                for (let i = 1; i <= totalItems; i++) {
+                    data.push({
+                        id: i,
+                        name: `Item #${String(i).padStart(4, '0')}`,
+                        category: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'][i % 5],
+                        value: Math.floor(Math.random() * 10000) + 100
+                    });
+                }
+                return data;
+            }
+
+            const allData = generateDummyData(TOTAL_PAGES * ITEMS_PER_PAGE);
+            totalDataCount.textContent = allData.length.toLocaleString();
+
+            // ===== RENDER CONTENT =====
+            function renderContent(page) {
+                const start = (page - 1) * ITEMS_PER_PAGE;
+                const end = Math.min(start + ITEMS_PER_PAGE, allData.length);
+                const pageData = allData.slice(start, end);
+
+                contentPageTitle.textContent = page;
+
+                let html = '';
+                if (pageData.length === 0) {
+                    html = `<div style="color:#666; text-align:center; padding:30px;">Tidak ada data</div>`;
+                } else {
+                    pageData.forEach((item, idx) => {
+                        const globalIdx = start + idx + 1;
+                        html += `
+                            <div class="data-item">
+                                <span class="index">#${globalIdx}</span>
+                                <span class="value">${item.name}</span>
+                                <span style="color:#888;font-size:12px;">${item.category}</span>
+                                <span style="color:#f5a623;">${item.value}</span>
+                            </div>
+                        `;
+                    });
+                }
+                dataList.innerHTML = html;
+            }
+
+            // ===== RENDER PAGINATION =====
+            function renderPagination() {
+                const start = Math.max(1, currentPage - VISIBLE_RANGE);
+                const end = Math.min(TOTAL_PAGES, currentPage + VISIBLE_RANGE);
+
+                let html = '';
+
+                // First page
+                if (start > 1) {
+                    html += `<a href="#" data-page="1" title="Halaman 1">1</a>`;
+                    if (start > 2) {
+                        html += `<span class="page-dots">…</span>`;
+                    }
+                }
+
+                // Range
+                for (let i = start; i <= end; i++) {
+                    const activeClass = (i === currentPage) ? 'active' : '';
+                    html += `<a href="#" data-page="${i}" class="${activeClass}" title="Halaman ${i}">${i}</a>`;
+                }
+
+                // Last page
+                if (end < TOTAL_PAGES) {
+                    if (end < TOTAL_PAGES - 1) {
+                        html += `<span class="page-dots">…</span>`;
+                    }
+                    html += `<a href="#" data-page="${TOTAL_PAGES}" title="Halaman ${TOTAL_PAGES}">${TOTAL_PAGES}</a>`;
+                }
+
+                container.innerHTML = html;
+
+                // Update info
+                currentPageDisplay.textContent = currentPage;
+                statCurrentPage.textContent = currentPage;
+                pageInput.value = currentPage;
+
+                // Update tombol navigasi
+                prevBtn.disabled = (currentPage === 1);
+                nextBtn.disabled = (currentPage === TOTAL_PAGES);
+                firstBtn.disabled = (currentPage === 1);
+                lastBtn.disabled = (currentPage === TOTAL_PAGES);
+
+                // Event listener untuk setiap link pagination
+                document.querySelectorAll('.pagination a[data-page]').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = parseInt(this.dataset.page);
+                        if (page !== currentPage && page >= 1 && page <= TOTAL_PAGES) {
+                            currentPage = page;
+                            updatePage();
+                        }
+                    });
+                });
+
+                // Render konten
+                renderContent(currentPage);
+            }
+
+            // ===== UPDATE PAGE =====
+            function updatePage() {
+                renderPagination();
+                // Scroll ke atas pagination
+                document.querySelector('.container').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // ===== NAVIGASI =====
+            function goToPage(page) {
+                page = Math.max(1, Math.min(TOTAL_PAGES, page));
+                if (page !== currentPage) {
+                    currentPage = page;
+                    updatePage();
+                } else {
+                    pageInput.value = currentPage;
+                }
+            }
+
+            // ===== EVENT LISTENERS =====
+            prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+            nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+            firstBtn.addEventListener('click', () => goToPage(1));
+            lastBtn.addEventListener('click', () => goToPage(TOTAL_PAGES));
+
+            goBtn.addEventListener('click', function() {
+                let val = parseInt(pageInput.value);
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > TOTAL_PAGES) val = TOTAL_PAGES;
+                goToPage(val);
+            });
