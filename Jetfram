@@ -1,0 +1,130 @@
+-- Menginisialisasi UI Library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("jetwuhFram", "Midnight")
+
+-- Variabel Global untuk Status State
+local AutoSellEnabled = false
+local AutoFarmEnabled = false
+
+-- Variabel Global untuk Aimbot
+local AimbotEnabled = false
+local TeamCheck = false
+local AimPart = "Head" -- Pilihan: Head, Torso, HumanoidRootPart
+
+-- Service Roblox yang dibutuhkan untuk Aimbot
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+local RunService = game:GetService("RunService")
+
+-- Fungsi untuk mencari musuh terdekat dari kursor Mouse
+local function GetClosestPlayer()
+    local ClosestPlayer = nil
+    local ShortestDistance = math.huge
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(AimPart) and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            -- Fitur Team Check
+            if TeamCheck and v.Team == LocalPlayer.Team then continue end
+
+            -- Menghitung jarak dari posisi karakter ke posisi kursor di layar
+            local Pos, OnScreen = Camera:WorldToViewportPoint(v.Character[AimPart].Position)
+            if OnScreen then
+                local Distance = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(Pos.X, Pos.Y)).Magnitude
+                if Distance < ShortestDistance then
+                    ClosestPlayer = v
+                    ShortestDistance = Distance
+                end
+            end
+        end
+    end
+    return ClosestPlayer
+end
+
+-- Loop Aimbot yang berjalan terus-menerus di background
+RunService.RenderStepped:Connect(function()
+    if AimbotEnabled then
+        local Target = GetClosestPlayer()
+        if Target and Target.Character and Target.Character:FindFirstChild(AimPart) then
+            -- Mengarahkan kamera secara halus (Smooth Camera Lock) ke target
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Character[AimPart].Position)
+        end
+    end
+end)
+
+-- ==========================================
+-- TAB UTAMA & SECTION (FARM)
+-- ==========================================
+local FarmTab = Window:NewTab("FARM")
+local StatusTab = Window:NewTab("STATUS")
+
+local SectionStats = FarmTab:NewSection("Stats Data")
+local LabelWater = SectionStats:NewLabel("💧 Water: 0")
+local LabelSugar = SectionStats:NewLabel("🍬 Sugar: 0")
+local LabelGelatin = SectionStats:NewLabel("🍮 Gelatin: 0")
+local LabelBag = SectionStats:NewLabel("👜 Bag: 0")
+
+local SectionActions = FarmTab:NewSection("Actions")
+
+SectionActions:NewToggle("AUTO FARM", "Mengaktifkan Auto Farm", function(state)
+    AutoFarmEnabled = state
+    if state then
+        LabelStatus:UpdateLabel("Status: FARMING...")
+        task.spawn(function()
+            while AutoFarmEnabled do
+                print("Sedang melakukan Auto Farm...")
+                task.wait(0.5)
+            end
+        end)
+    else
+        LabelStatus:UpdateLabel("Status: STOPPED")
+    end
+end)
+
+SectionActions:NewToggle("AUTO SELL", "Mengaktifkan Auto Sell", function(state)
+    AutoSellEnabled = state
+    if state then
+        task.spawn(function()
+            while AutoSellEnabled do
+                print("Sedang melakukan Auto Sell...")
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+SectionActions:NewButton("TELEPORT NPC", "Teleport ke NPC", function() print("Teleport NPC") end)
+SectionActions:NewButton("TELEPORT TIER", "Teleport ke Tier", function() print("Teleport Tier") end)
+SectionActions:NewButton("AUTO BUY", "Mengaktifkan Auto Buy", function() print("Auto Buy") end)
+
+local SectionFooter = FarmTab:NewSection("Info")
+local LabelStatus = SectionFooter:NewLabel("Status: STOPPED")
+local LabelBuyAmount = SectionFooter:NewLabel("BUY AMOUNT: 1")
+
+-- ==========================================
+-- TAB SETTINGS (UI + AIMBOT)
+-- ==========================================
+local SettingsTab = Window:NewTab("Settings")
+
+-- Section untuk Pengaturan Aimbot
+local SectionAimbot = SettingsTab:NewSection("Aimbot Settings")
+
+SectionAimbot:NewToggle("Toggle Aimbot", "Mengaktifkan / Mematikan Aimbot Camera Lock", function(state)
+    AimbotEnabled = state
+end)
+
+SectionAimbot:NewToggle("Team Check", "Aimbot tidak akan mengincar teman satu tim", function(state)
+    TeamCheck = state
+end)
+
+SectionAimbot:NewDropdown("Aim Part Target", "Pilih bagian tubuh yang ingin diincar", {"Head", "Torso", "HumanoidRootPart"}, function(currentOption)
+    AimPart = currentOption
+end)
+
+-- Section untuk Pengaturan Tampilan UI
+local SectionUI = SettingsTab:NewSection("UI Settings")
+
+SectionUI:NewButton("Hide / Show UI", "Menyembunyikan atau menampilkan UI", function()
+    Library:ToggleUI()
+end)
