@@ -1,0 +1,249 @@
+-- ============================================
+-- JetyxMultiFram + AutoFarming + Bypass Anti-Cheat
+-- KHUSUS SOUTH BRONX TRENCHES
+-- ============================================
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local VirtualUser = game:GetService("VirtualUser")
+local HttpService = game:GetService("HttpService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+
+-- ============================================
+-- KONFIGURASI FARMING (UBAH SESUAI KEBUTUHAN)
+-- ============================================
+local Config = {
+    FarmingInterval = 0.5, -- Kecepatan farming (detik)
+    TargetCash = 1000000, -- Target uang (otomatis berhenti)
+    AntiAFK = true, -- Cegah AFK
+    AutoRejoin = true, -- Auto rejoin jika disconnect
+    BypassLevel = 3, -- 1=Low, 2=Medium, 3=High (resiko)
+}
+
+-- ============================================
+-- SISTEM BYPASS ANTI-CHEAT
+-- ============================================
+local AntiCheatBypass = {}
+
+-- Method 1: Spoof Client-Side Checks
+function AntiCheatBypass:SpoofClient()
+    -- Mengelabui deteksi client-side
+    local fakeValues = {
+        ["IsFarming"] = false,
+        ["LastClickTime"] = tick(),
+        ["MovementPattern"] = "random"
+    }
+    
+    for key, value in pairs(fakeValues) do
+        if not _G[key] then
+            _G[key] = value
+        end
+    end
+end
+
+-- Method 2: Hide Script Activity
+function AntiCheatBypass:HideActivity()
+    -- Menggunakan debug library untuk menyembunyikan stack trace
+    local oldHook = debug.getinfo
+    debug.getinfo = function(...)
+        return nil
+    end
+    
+    -- Menghapus jejak script dari memory
+    local function noop() end
+    local mt = getrawmetatable(game)
+    local oldNamecall = mt.__namecall
+    mt.__namecall = function(self, ...)
+        if self == "script" then
+            return nil
+        end
+        return oldNamecall(self, ...)
+    end
+end
+
+-- Method 3: Randomize Input Patterns
+function AntiCheatBypass:RandomizeInput()
+    local random = Random.new()
+    local patterns = {
+        function() VirtualUser:CaptureController() end,
+        function() VirtualUser:ClickButton1(Vector2.new(random:NextInteger(100, 800), random:NextInteger(100, 600))) end,
+        function() VirtualUser:KeyDown("w") end,
+        function() VirtualUser:KeyUp("w") end,
+    }
+    
+    spawn(function()
+        while true do
+            wait(random:NextInteger(5, 15))
+            patterns[random:NextInteger(1, #patterns)]()
+        end
+    end)
+end
+
+-- Method 4: Bypass RemoteEvent Filters
+function AntiCheatBypass:BypassRemoteEvents()
+    local oldSend = ReplicatedStorage.InvokeServer
+    ReplicatedStorage.InvokeServer = function(self, ...)
+        -- Menyembunyikan argumen farming
+        local args = {...}
+        if string.find(tostring(args[1]), "Farm") then
+            args[1] = "Idle"
+        end
+        return oldSend(self, unpack(args))
+    end
+end
+
+-- Jalankan semua bypass
+AntiCheatBypass:SpoofClient()
+AntiCheatBypass:HideActivity()
+AntiCheatBypass:RandomizeInput()
+AntiCheatBypass:BypassRemoteEvents()
+
+-- ============================================
+-- AUTO FARMING SYSTEM
+-- ============================================
+local AutoFarm = {
+    Enabled = false,
+    Running = false,
+    TotalCash = 0,
+    StartTime = os.time(),
+    Connection = nil,
+}
+
+-- Fungsi Farming Otomatis
+function AutoFarm:Start()
+    if self.Running then return end
+    self.Running = true
+    self.StartTime = os.time()
+    
+    print("✅ AutoFarming AKTIF!")
+    
+    self.Connection = RunService.Heartbeat:Connect(function()
+        if not self.Enabled then
+            self:Stop()
+            return
+        end
+        
+        -- Cek target tercapai
+        if self.TotalCash >= Config.TargetCash then
+            print("🎯 Target tercapai! Berhenti farming.")
+            self:Stop()
+            return
+        end
+        
+        -- ============================================
+        -- LOGIKA FARMING (GANTI SESUAI GAME)
+        -- ============================================
+        -- Method 1: Remote Event Farming
+        local farmEvent = ReplicatedStorage:FindFirstChild("FarmEvent")
+        if farmEvent then
+            farmEvent:FireServer("AutoFarm")
+        end
+        
+        -- Method 2: Simulasi Klik
+        local mouse = Player:GetMouse()
+        if mouse then
+            -- Cari NPC/Objek farming
+            local farmNPC = workspace:FindFirstChild("FarmNPC")
+            if farmNPC then
+                local pos = farmNPC.Position
+                local screenPos = Camera:WorldToScreenPoint(pos)
+                if screenPos then
+                    VirtualUser:ClickButton1(Vector2.new(screenPos.X, screenPos.Y))
+                end
+            end
+        end
+        
+        -- Method 3: Tool Farming
+        local tool = Player.Backpack:FindFirstChild("FarmTool")
+        if tool then
+            Player.Character.Humanoid:EquipTool(tool)
+            wait(0.2)
+            tool:Activate()
+        end
+        
+        -- ============================================
+        
+        -- Update statistik
+        self.TotalCash = self.TotalCash + 100 -- Ganti dengan nilai sebenarnya
+        self:UpdateUI()
+        
+        -- Anti-AFK
+        if Config.AntiAFK then
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton1(Vector2.new(0, 0))
+        end
+    end)
+end
+
+function AutoFarm:Stop()
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
+    self.Running = false
+    print("⏹️ AutoFarming BERHENTI")
+end
+
+function AutoFarm:UpdateUI()
+    -- Update statistik di UI
+    local statsFrame = CoreGui:FindFirstChild("JetyxMultiFramUI")
+    if statsFrame then
+        local runtime = os.time() - self.StartTime
+        local hours = math.floor(runtime / 3600)
+        local minutes = math.floor((runtime % 3600) / 60)
+        local seconds = runtime % 60
+        local runtimeStr = string.format("%02d:%02d:%02d", hours, minutes, seconds)
+        
+        -- Update label (index 0 = Times Rejoined, 1 = Runtime, 2 = Cash Made, dst)
+        local rightPanel = statsFrame:FindFirstChild("MainFrame"):FindFirstChild("RightPanel")
+        if rightPanel then
+            local labels = rightPanel:GetChildren()
+            for i, label in ipairs(labels) do
+                if label:IsA("TextLabel") then
+                    if string.find(label.Text, "Runtime") then
+                        label.Text = "⏱️ Runtime: " .. runtimeStr
+                    elseif string.find(label.Text, "Cash Made") then
+                        label.Text = "💵 Cash Made: " .. self.TotalCash
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- ============================================
+-- AUTO REJOIN SYSTEM
+-- ============================================
+if Config.AutoRejoin then
+    Player.PlayerRemoving:Connect(function()
+        wait(1)
+        game:GetService("TeleportService"):Teleport(game.PlaceId)
+    end)
+end
+
+-- ============================================
+-- MEMBUAT UI (DENGAN TOMBOL FUNGSIONAL)
+-- ============================================
+-- (Kode UI sama seperti sebelumnya, tapi dengan callback yang berfungsi)
+
+-- ... (masukkan kode UI dari script awal Anda di sini) ...
+
+-- ============================================
+-- MENGAKTIFKAN AUTO FARM DARI TOMBOL UI
+-- ============================================
+-- Ganti createToggle untuk Autofarming dengan yang ini:
+createToggle(LeftPanel, "Autofarming", false, function(state)
+    AutoFarm.Enabled = state
+    if state then
+        AutoFarm:Start()
+    else
+        AutoFarm:Stop()
+    end
+end)
+
+print("✅ SCRIPT SIAP! Tekan tombol 'Autofarming' untuk mulai.")
