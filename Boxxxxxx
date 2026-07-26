@@ -1,0 +1,235 @@
+--[[
+Script South Bronx: The Trenches - Multi Farming & Auto Farm
+Library: Menggunakan GUI berbasis ScreenGui manual (tanpa Rayfield)
+Background: Hitam polos
+Fitur: Auto Farm Box Job + Teleport Multi Lokasi
+]]
+
+-- Buat GUI utama
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SouthBronxFarm"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Background hitam polos
+local background = Instance.new("Frame")
+background.Size = UDim2.new(0, 350, 0, 250)
+background.Position = UDim2.new(0.5, -175, 0.5, -125)
+background.BackgroundColor3 = Color3.new(0, 0, 0) -- Hitam polos
+background.BackgroundTransparency = 0.05
+background.BorderSizePixel = 0
+background.Parent = screenGui
+
+-- Efek shadow sederhana
+local shadow = Instance.new("Frame")
+shadow.Size = UDim2.new(0, 350, 0, 250)
+shadow.Position = UDim2.new(0.5, -173, 0.5, -123)
+shadow.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+shadow.BackgroundTransparency = 0.8
+shadow.BorderSizePixel = 0
+shadow.Parent = screenGui
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = background
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, 0, 1, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "South Bronx - Multi Farm"
+titleText.TextColor3 = Color3.new(1, 1, 1)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+titleText.Parent = titleBar
+
+-- Tombol Close
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -30, 0, 2.5)
+closeBtn.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = titleBar
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- ================================
+-- FITUR AUTO FARM
+-- ================================
+
+local isFarming = false
+local farmLoop = nil
+local toggleButton = nil
+
+local function sendKeyE()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.5)
+    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function startFarming()
+    if isFarming then return end
+    isFarming = true
+    if toggleButton then
+        toggleButton.Text = "⏹ Stop Farm"
+        toggleButton.BackgroundColor3 = Color3.new(0.8, 0.2, 0.2)
+    end
+
+    farmLoop = game:GetService("RunService").Stepped:Connect(function()
+        if not isFarming then return end
+        local char = player.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        -- Kirim remote event untuk Box Job
+        local remote = game:GetService("ReplicatedStorage"):FindFirstChild("RemoteEvents")
+        if remote and remote:FindFirstChild("FetchGUI") then
+            remote.FetchGUI:FireServer("Box Job")
+        end
+
+        -- Lokasi 1: Farm Box Job
+        hrp.CFrame = CFrame.new(Vector3.new(-552.4525146484375, 3.5371451377868652, -83.8554458618164))
+        task.wait(0.5)
+        sendKeyE()
+        task.wait(4.5)
+
+        -- Lokasi 2
+        hrp.CFrame = CFrame.new(Vector3.new(-401.3119201660156, 3.4121932983398438, -72.4224853515625))
+        task.wait(0.5)
+        sendKeyE()
+        task.wait(4.5)
+    end)
+end
+
+local function stopFarming()
+    isFarming = false
+    if farmLoop then
+        farmLoop:Disconnect()
+        farmLoop = nil
+    end
+    if toggleButton then
+        toggleButton.Text = "▶ Start Farm"
+        toggleButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
+    end
+end
+
+-- Tombol Toggle Farm
+toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.8, 0, 0, 35)
+toggleButton.Position = UDim2.new(0.1, 0, 0.2, 0)
+toggleButton.BackgroundColor3 = Color3.new(0.2, 0.6, 0.2)
+toggleButton.BorderSizePixel = 0
+toggleButton.Text = "▶ Start Farm"
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = background
+
+toggleButton.MouseButton1Click:Connect(function()
+    if isFarming then
+        stopFarming()
+    else
+        startFarming()
+    end
+end)
+
+-- ================================
+-- FITUR TELEPORT
+-- ================================
+
+local locations = {
+    {"Lokasi 1", Vector3.new(-552.4525146484375, 3.5371451377868652, -83.8554458618164)},
+    {"Lokasi 2", Vector3.new(-401.3119201660156, 3.4121932983398438, -72.4224853515625)},
+    {"Spawn", Vector3.new(0, 3, 0)}
+}
+
+local yOffset = 0.4
+
+for i, loc in ipairs(locations) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.35, 0, 0, 30)
+    btn.Position = UDim2.new((i == 1 and 0.1) or (i == 2 and 0.55) or (i == 3 and 0.1), 0, 0.45 + (i == 3 and 0.15 or 0), 0)
+    btn.BackgroundColor3 = Color3.new(0.15, 0.15, 0.25)
+    btn.BorderSizePixel = 0
+    btn.Text = "TP " .. loc[1]
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.Gotham
+    btn.Parent = background
+
+    btn.MouseButton1Click:Connect(function()
+        local char = player.Character
+        if char then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.CFrame = CFrame.new(loc[2])
+            end
+        end
+    end)
+end
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0.9, 0, 0, 25)
+statusLabel.Position = UDim2.new(0.05, 0, 0.75, 0)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Status: Siap"
+statusLabel.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+statusLabel.TextScaled = true
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Parent = background
+
+-- Update status
+game:GetService("RunService").Heartbeat:Connect(function()
+    if isFarming then
+        statusLabel.Text = "Status: 🟢 Farming aktif..."
+        statusLabel.TextColor3 = Color3.new(0, 1, 0)
+    else
+        statusLabel.Text = "Status: 🔴 Berhenti"
+        statusLabel.TextColor3 = Color3.new(1, 0.3, 0.3)
+    end
+end)
+
+-- ================================
+-- DRAGGABLE GUI (geser)
+-- ================================
+
+local drag = false
+local dragStart, startPos
+
+background.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        drag = true
+        dragStart = input.Position
+        startPos = background.Position
+    end
+end)
+
+background.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        drag = false
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if drag and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        background.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        shadow.Position = UDim2.new(background.Position.X.Scale, background.Position.X.Offset - 2, background.Position.Y.Scale, background.Position.Y.Offset - 2)
+    end
+end)
+
+-- Notifikasi
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "South Bronx Multi Farm",
+    Text = "Script berhasil dimuat! GUI hitam polos.",
+    Duration = 3
+})
