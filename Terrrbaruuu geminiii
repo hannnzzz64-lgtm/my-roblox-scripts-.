@@ -1,0 +1,143 @@
+-- // South Bronx: The Trenches - Optimized Marshmallow Auto Farm
+-- // Theme: Dark Green | Lag-Free Optimization & Basic Bypass
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local LocalPlayer = Players.LocalPlayer
+
+-- // Anti-Kick / Basic Bypass Placeholder
+local OldNameCall
+OldNameCall = hookmetamethod(game, "__namecall", function(self, ...)
+    local Method = getnamecallmethod()
+    if Method == "Kick" or Method == "kick" then
+        if self == LocalPlayer then
+            warn("[Bypass] Mencegah percobaan Kick.")
+            return
+        end
+    end
+    return OldNameCall(self, ...)
+end)
+
+-- // UI Creation (Dark Green Theme)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "TrenchesMarshmallowFarm"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 35, 20) -- Hijau Tua
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 300, 0, 220)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(10, 25, 15)
+Title.BorderSizePixel = 0
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "South Bronx: Marshmallow Farm"
+Title.TextColor3 = Color3.fromRGB(100, 255, 150)
+Title.TextSize = 16
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 10, 0, 55)
+StatusLabel.Size = UDim2.new(1, -20, 0, 30)
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.Text = "Status: Idle"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize = 14
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Parent = MainFrame
+ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 80, 45)
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Position = UDim2.new(0.1, 0, 0, 100)
+ToggleButton.Size = UDim2.new(0.8, 0, 0, 45)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "Toggle Auto Farm Marshmallow"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 14
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = ToggleButton
+
+local Credit = Instance.new("TextLabel")
+Credit.Parent = MainFrame
+Credit.BackgroundTransparency = 1
+Credit.Position = UDim2.new(0, 10, 0, 175)
+Credit.Size = UDim2.new(1, -20, 0, 25)
+Credit.Font = Enum.Font.SourceSansItalic
+Credit.Text = "Optimized (No Lag) | Bypass Active"
+Credit.TextColor3 = Color3.fromRGB(100, 140, 110)
+Credit.TextSize = 12
+
+-- // Optimized Auto Farm Logic (Using task.spawn and intervals to prevent lag)
+local AutoFarmRunning = false
+
+local function getMarshmallow()
+    for _, obj in ipairs(Workspace:GetChildren()) do -- Diubah ke GetChildren atau batasi pencarian agar ringan
+        if obj.Name:lower():find("marshmallow") and obj:IsA("BasePart") then
+            return obj
+        end
+    end
+    -- Fallback jika ada di dalam folder tertentu
+    for _, folder in ipairs(Workspace:GetChildren()) do
+        if folder:IsA("Folder") or folder:IsA("Model") then
+            for _, obj in ipairs(folder:GetChildren()) do
+                if obj.Name:lower():find("marshmallow") and obj:IsA("BasePart") then
+                    return obj
+                end
+            end
+        end
+    end
+    return nil
+end
+
+ToggleButton.MouseButton1Click:Connect(function()
+    AutoFarmRunning = not AutoFarmRunning
+    if AutoFarmRunning then
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(40, 140, 70)
+        StatusLabel.Text = "Status: Farming (Optimized)..."
+    else
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(30, 80, 45)
+        StatusLabel.Text = "Status: Paused"
+    end
+end)
+
+-- Mengganti RenderStepped dengan task.spawn + task.wait(0.5) agar tidak membebani FPS game
+task.spawn(function()
+    while true do
+        if AutoFarmRunning then
+            pcall(function()
+                local marshmallow = getMarshmallow()
+                if marshmallow and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = marshmallow.CFrame + Vector3.new(0, 3, 0)
+                    
+                    if firetouchinterest then
+                        firetouchinterest(LocalPlayer.Character.HumanoidRootPart, marshmallow, 0)
+                        task.wait(0.05)
+                        firetouchinterest(LocalPlayer.Character.HumanoidRootPart, marshmallow, 1)
+                    end
+                end
+            end)
+        end
+        task.wait(0.5) -- Jeda 0.5 detik per siklus, membuat game tetap mulus tanpa lag/patah-patah
+    end
+end)
