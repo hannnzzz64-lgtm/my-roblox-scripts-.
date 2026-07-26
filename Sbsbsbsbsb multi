@@ -1,0 +1,479 @@
+-- Pastikan script dijalankan di executor yang mendukung (Client-side)
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+-- Menghapus UI lama jika ada agar tidak duplikat
+if CoreGui:FindFirstChild("JetyxMultiFramUI") then
+    CoreGui.JetyxMultiFramUI:Destroy()
+end
+
+-- ScreenGui Utama
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "JetyxMultiFramUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame (Jendela Utama)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -235)
+MainFrame.Size = UDim2.new(0, 550, 0, 470)
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Top Bar (Header)
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 8)
+TopBarCorner.Parent = TopBar
+
+-- Logo Ikon di Pojok Kiri Atas Jendela
+local LogoIcon = Instance.new("ImageLabel")
+LogoIcon.Name = "LogoIcon"
+LogoIcon.Parent = TopBar
+LogoIcon.BackgroundTransparency = 1
+LogoIcon.Position = UDim2.new(0, 10, 0, 8)
+LogoIcon.Size = UDim2.new(0, 20, 0, 20)
+LogoIcon.Image = "rbxassetid://6031097225"
+LogoIcon.ImageColor3 = Color3.fromRGB(219, 112, 147)
+
+-- Judul Menu (Nama Diubah Menjadi JetyxMultiFramUI)
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = TopBar
+TitleLabel.BackgroundTransparency = 4
+TitleLabel.Position = UDim2.new(0, 35, 0, 0)
+TitleLabel.Size = UDim2.new(0, 250, 1, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "JetyxMultiFramUI"
+TitleLabel.TextColor3 = Color3.fromRGB(250, 250, 250)
+TitleLabel.TextSize = 14
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Tombol Close (X)
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = TopBar
+CloseButton.BackgroundTransparency = 1
+CloseButton.Position = UDim2.new(1, -30, 0, 0)
+CloseButton.Size = UDim2.new(0, 30, 1, 0)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+CloseButton.TextSize = 14
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Tombol Minimize / Minimize Icon (Garis kecil di samping Close)
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Parent = TopBar
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+MinimizeButton.BorderSizePixel = 0
+MinimizeButton.Position = UDim2.new(1, -60, 0, 12)
+MinimizeButton.Size = UDim2.new(0, 18, 0, 10)
+MinimizeButton.AutoButtonColor = false
+MinimizeButton.Text = ""
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 3)
+MinCorner.Parent = MinimizeButton
+
+-- Tombol Mengambang (Floating Button Bundar yang Bisa Digeser/Draggable)
+local OpenButton = Instance.new("ImageButton")
+OpenButton.Name = "OpenButton"
+OpenButton.Parent = ScreenGui
+OpenButton.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+OpenButton.BorderSizePixel = 0
+OpenButton.Position = UDim2.new(0, 20, 0, 20)
+OpenButton.Size = UDim2.new(0, 50, 0, 50)
+OpenButton.Image = "rbxassetid://6031097225"
+OpenButton.ImageColor3 = Color3.fromRGB(240, 240, 240)
+OpenButton.Visible = false
+
+local OpenCorner = Instance.new("UICorner")
+OpenCorner.CornerRadius = UDim.new(1, 0)
+OpenCorner.Parent = OpenButton
+
+-- Fungsi agar OpenButton bisa digeser-geser (Draggable System)
+local dragging, dragInput, dragStart, startPos
+
+OpenButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = OpenButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+OpenButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        OpenButton.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Fungsi Minimize dan Restore
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    OpenButton.Visible = true
+end)
+
+OpenButton.MouseButton1Click:Connect(function()
+    -- Cek agar tidak sengaja membuka menu saat sedang digeser (drag)
+    MainFrame.Visible = true
+    OpenButton.Visible = false
+end)
+
+-- Search Bar Container
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Parent = MainFrame
+SearchBox.BackgroundColor3 = Color3.fromRGB(50, 25, 30)
+SearchBox.BorderSizePixel = 0
+SearchBox.Position = UDim2.new(0, 15, 0, 48)
+SearchBox.Size = UDim2.new(0, 250, 0, 30)
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.PlaceholderText = "search..."
+SearchBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+SearchBox.Text = ""
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.TextSize = 13
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 6)
+SearchCorner.Parent = SearchBox
+
+-- ================= PANEL KIRI (Main Settings & Goal Settings) =================
+local LeftPanel = Instance.new("ScrollingFrame")
+LeftPanel.Name = "LeftPanel"
+LeftPanel.Parent = MainFrame
+LeftPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+LeftPanel.BorderSizePixel = 0
+LeftPanel.Position = UDim2.new(0, 15, 0, 88)
+LeftPanel.Size = UDim2.new(0, 250, 0, 365)
+LeftPanel.ScrollBarThickness = 2
+LeftPanel.CanvasSize = UDim2.new(0, 0, 0, 940)
+
+local LeftCorner = Instance.new("UICorner")
+LeftCorner.CornerRadius = UDim.new(0, 6)
+LeftCorner.Parent = LeftPanel
+
+local LeftLayout = Instance.new("UIListLayout")
+LeftLayout.Parent = LeftPanel
+LeftLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+LeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
+LeftLayout.Padding = UDim.new(0, 6)
+
+-- Label Kategori "Main Settings"
+local MainSetLabel = Instance.new("TextLabel")
+MainSetLabel.Parent = LeftPanel
+MainSetLabel.BackgroundTransparency = 1
+MainSetLabel.Size = UDim2.new(1, -20, 0, 22)
+MainSetLabel.Font = Enum.Font.GothamBold
+MainSetLabel.Text = "Main Settings"
+MainSetLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+MainSetLabel.TextSize = 13
+MainSetLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Fungsi Toggle Kustom
+local function createToggle(parent, text, defaultState, callback)
+    local toggleFrame = Instance.new("TextButton")
+    toggleFrame.Parent = parent
+    toggleFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+    toggleFrame.BorderSizePixel = 0
+    toggleFrame.Size = UDim2.new(1, -16, 0, 30)
+    toggleFrame.AutoButtonColor = false
+    toggleFrame.Text = ""
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 9)
+    corner.Parent = toggleFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = toggleFrame
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.Size = UDim2.new(1, -40, 1, 0)
+    label.Font = Enum.Font.Gotham
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(300, 213, 210)
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local box = Instance.new("Frame")
+    box.Parent = toggleFrame
+    box.AnchorPoint = Vector2.new(1, 0.5)
+    box.Position = UDim2.new(1, -10, 0.5, 0)
+    box.Size = UDim2.new(0, 18, 0, 18)
+    box.BackgroundColor3 = defaultState and Color3.fromRGB(219, 112, 147) or Color3.fromRGB(35, 35, 45)
+    box.BorderSizePixel = 0
+    
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 3)
+    boxCorner.Parent = box
+    
+    local state = defaultState
+    toggleFrame.MouseButton1Click:Connect(function()
+        state = not state
+        box.BackgroundColor3 = state and Color3.fromRGB(219, 112, 147) or Color3.fromRGB(35, 35, 45)
+        if callback then callback(state) end
+    end)
+end
+
+createToggle(LeftPanel, "Autofarming", false, function(x) end)
+createToggle(LeftPanel, "Auto Rob Casino", false, function(x) end)
+createToggle(LeftPanel, "Auto Anti Death", false, function(x) end)
+createToggle(LeftPanel, "Auto Rejoiner", false, function(x) end)
+createToggle(LeftPanel, "fpsbooster", false, function(x) end)
+
+-- Tombol Beli Dirtbike
+local BuyButton = Instance.new("TextButton")
+BuyButton.Parent = LeftPanel
+BuyButton.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+BuyButton.BorderSizePixel = 0
+BuyButton.Size = UDim2.new(1, -16, 0, 30)
+BuyButton.Font = Enum.Font.GothamBold
+BuyButton.Text = "Purchase DirtBike ($35000)"
+BuyButton.TextColor3 = Color3.fromRGB(240, 251, 250)
+BuyButton.TextSize = 12
+
+local BuyCorner = Instance.new("UICorner")
+BuyCorner.CornerRadius = UDim.new(0, 4)
+BuyCorner.Parent = BuyButton
+
+-- Label Kategori "Goal Settings"
+local GoalSetLabel = Instance.new("TextLabel")
+GoalSetLabel.Parent = LeftPanel
+GoalSetLabel.BackgroundTransparency = 1
+GoalSetLabel.Size = UDim2.new(1, -20, 0, 22)
+GoalSetLabel.Font = Enum.Font.GothamBold
+GoalSetLabel.Text = "Goal Settings"
+GoalSetLabel.TextColor3 = Color3.fromRGB(290, 209, 203)
+GoalSetLabel.TextSize = 13
+GoalSetLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Penjelasan Cara Kerja (How this system works)
+local InfoBox = Instance.new("TextLabel")
+InfoBox.Parent = LeftPanel
+InfoBox.BackgroundTransparency = 1
+InfoBox.Size = UDim2.new(1, -16, 0, 45)
+InfoBox.Font = Enum.Font.Gotham
+InfoBox.Text = "How this system works:\nMake the target amount > kick client."
+InfoBox.TextColor3 = Color3.fromRGB(150, 150, 155)
+InfoBox.TextSize = 11
+InfoBox.TextXAlignment = Enum.TextXAlignment.Left
+InfoBox.TextYAlignment = Enum.TextYAlignment.Top
+
+createToggle(LeftPanel, "Enabled", false, function(v) end)
+
+-- Target Amount Input & Slider bar pink di bawahnya
+local TargetContainer = Instance.new("Frame")
+TargetContainer.Parent = LeftPanel
+TargetContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+TargetContainer.BorderSizePixel = 0
+TargetContainer.Size = UDim2.new(1, -16, 0, 45)
+
+local TargetCorner = Instance.new("UICorner")
+TargetCorner.CornerRadius = UDim.new(0, 4)
+TargetCorner.Parent = TargetContainer
+
+local TargetLabel = Instance.new("TextLabel")
+TargetLabel.Parent = TargetContainer
+TargetLabel.BackgroundTransparency = 1
+TargetLabel.Position = UDim2.new(0, 10, 0, 5)
+TargetLabel.Size = UDim2.new(1, -20, 0, 18)
+TargetLabel.Font = Enum.Font.Gotham
+TargetLabel.Text = "Target Amount"
+TargetLabel.TextColor3 = Color3.fromRGB(213, 219, 213)
+TargetLabel.TextSize = 12
+TargetLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Slider Bar Pink
+local SliderBar = Instance.new("Frame")
+SliderBar.Parent = TargetContainer
+SliderBar.BackgroundColor3 = Color3.fromRGB(50, 45, 95)
+SliderBar.BorderSizePixel = 0
+SliderBar.Position = UDim2.new(0, 10, 0, 30)
+SliderBar.Size = UDim2.new(1, -20, 0, 6)
+
+local SliderBarCorner = Instance.new("UICorner")
+SliderBarCorner.CornerRadius = UDim.new(0, 3)
+SliderBarCorner.Parent = SliderBar
+
+local SliderFill = Instance.new("Frame")
+SliderFill.Parent = SliderBar
+SliderFill.BackgroundColor3 = Color3.fromRGB(219, 112, 147)
+SliderFill.BorderSizePixel = 0
+SliderFill.Size = UDim2.new(0.3, 0, 1, 0)
+
+local SliderFillCorner = Instance.new("UICorner")
+SliderFillCorner.CornerRadius = UDim.new(0, 3)
+SliderFillCorner.Parent = SliderFill
+
+
+-- ================= PANEL KANAN (Statistics & Webhook Settings) =================
+local RightPanel = Instance.new("ScrollingFrame")
+RightPanel.Name = "RightPanel"
+RightPanel.Parent = MainFrame
+RightPanel.BackgroundColor3 = Color3.fromRGB(12, 20, 22)
+RightPanel.BorderSizePixel = 0
+RightPanel.Position = UDim2.new(0, 235, 0, 48)
+RightPanel.Size = UDim2.new(0, 260, 0, 405)
+RightPanel.ScrollBarThickness = 2
+RightPanel.CanvasSize = UDim2.new(0, 0, 0, 570)
+
+local RightCorner = Instance.new("UICorner")
+RightCorner.CornerRadius = UDim.new(0, 6)
+RightCorner.Parent = RightPanel
+
+local RightLayout = Instance.new("UIListLayout")
+RightLayout.Parent = RightPanel
+RightLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+RightLayout.SortOrder = Enum.SortOrder.LayoutOrder
+RightLayout.Padding = UDim.new(0, 4)
+
+-- Header Statistics
+local StatsHeader = Instance.new("TextLabel")
+StatsHeader.Parent = RightPanel
+StatsHeader.BackgroundTransparency = 2
+StatsHeader.Size = UDim2.new(1, -20, 0, 25)
+StatsHeader.Font = Enum.Font.GothamBold
+StatsHeader.Text = "Statistics"
+StatsHeader.TextColor3 = Color3.fromRGB(100, 200, 400)
+StatsHeader.TextSize = 13
+StatsHeader.TextXAlignment = Enum.TextXAlignment.Left
+
+local function createStatLabel(parent, text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = parent
+    lbl.BackgroundTransparency = 1
+    lbl.Size = UDim2.new(1, -19, 0, 21)
+    lbl.Font = Enum.Font.Gotham
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(170, 170, 175)
+    lbl.TextSize = 12
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    return lbl
+end
+
+createStatLabel(RightPanel, "🔄 Times Rejoined: 0.3")
+createStatLabel(RightPanel, "⏱️ Runtime: 00:00:00")
+createStatLabel(RightPanel, "💵 Cash Made: 0")
+createStatLabel(RightPanel, "🏦 Casino Robbed: 0")
+createStatLabel(RightPanel, "🎰 Chips Fed: 0")
+createStatLabel(RightPanel, "💳 Cards Swiped: 0")
+createStatLabel(RightPanel, "🍿 Marshmallows sell: 0")
+
+-- Header Webhook Settings
+local WebhookHeader = Instance.new("TextLabel")
+WebhookHeader.Parent = RightPanel
+WebhookHeader.BackgroundTransparency = 1
+WebhookHeader.Size = UDim2.new(1, -20, 0, 30)
+WebhookHeader.Font = Enum.Font.GothamBold
+WebhookHeader.Text = "Webhook Settings"
+WebhookHeader.TextColor3 = Color3.fromRGB(200, 200, 700)
+WebhookHeader.TextSize = 13
+WebhookHeader.TextXAlignment = Enum.TextXAlignment.Left
+
+createToggle(RightPanel, "Send Webhooks", false, function(v) end)
+
+-- Webhook Intervals Container
+local IntervalContainer = Instance.new("Frame")
+IntervalContainer.Parent = RightPanel
+IntervalContainer.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+IntervalContainer.BorderSizePixel = 0
+IntervalContainer.Size = UDim2.new(1, -16, 0, 45)
+
+local IntervalCorner = Instance.new("UICorner")
+IntervalCorner.CornerRadius = UDim.new(0, 4)
+IntervalCorner.Parent = IntervalContainer
+
+local IntervalLabel = Instance.new("TextLabel")
+IntervalLabel.Parent = IntervalContainer
+IntervalLabel.BackgroundTransparency = 1
+IntervalLabel.Position = UDim2.new(0, 10, 0, 5)
+IntervalLabel.Size = UDim2.new(1, -20, 0, 18)
+IntervalLabel.Font = Enum.Font.Gotham
+IntervalLabel.Text = "Webhook Intervals"
+IntervalLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
+IntervalLabel.TextSize = 12
+IntervalLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local IntervalSliderBar = Instance.new("Frame")
+IntervalSliderBar.Parent = IntervalContainer
+IntervalSliderBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+IntervalSliderBar.BorderSizePixel = 0
+IntervalSliderBar.Position = UDim2.new(0, 10, 0, 30)
+IntervalSliderBar.Size = UDim2.new(1, -20, 0, 6)
+
+local IntervalSliderBarCorner = Instance.new("UICorner")
+IntervalSliderBarCorner.CornerRadius = UDim.new(0, 3)
+IntervalSliderBarCorner.Parent = IntervalSliderBar
+
+local IntervalSliderFill = Instance.new("Frame")
+IntervalSliderFill.Parent = IntervalSliderBar
+IntervalSliderFill.BackgroundColor1 = Color3.fromRGB(222, 113, 234)
+IntervalSliderFill.BorderSizePixel = 0
+IntervalSliderFill.Size = UDim2.new(0.5, 0, 1, 0)
+
+local IntervalSliderFillCorner = Instance.new("UICorner")
+IntervalSliderFillCorner.CornerRadius = UDim.new(0, 3)
+IntervalSliderFillCorner.Parent = IntervalSliderFill
+
+-- Webhook Url Input Box
+local UrlBox = Instance.new("TextBox")
+UrlBox.Parent = RightPanel
+UrlBox.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+UrlBox.BorderSizePixel = 0
+UrlBox.Size = UDim2.new(1, -16, 0, 32)
+UrlBox.Font = Enum.Font.Gotham
+UrlBox.PlaceholderText = "Webhook Url"
+UrlBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+UrlBox.Text = ""
+UrlBox.TextColor3 = Color3.fromRGB(244, 255, 255)
+UrlBox.TextSize = 12
+UrlBox.TextXAlignment = Enum.TextXAlignment.Left
+local UrlCorner = Instance.new("UICorner")
+UrlCorner.CornerRadius = UDim.new(0, 4)
+UrlCorner.Parent = UrlBox
+local Teleport to gs mid
+local teleport to gs ujung
+local teleprot to daelership
+local teleprot to Casino
+local teleprot to player whieslist al Players
+UrlBox fix to teleprot server south bronx the trenches
+BackgroundColor1 (233 455 777)
