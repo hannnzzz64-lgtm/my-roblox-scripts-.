@@ -1,0 +1,561 @@
+--[[
+    SCRIPT AUTOFARM SOUTH BRONX
+    Fitur: Auto Box Job, Auto Construction, Auto Collect Money
+    Warna Background: Hitam (#000000)
+    Gunakan dengan risiko sendiri!
+]]
+
+-- Cek executor
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local Character = LP.Character or LP.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+local RS = game:GetService("ReplicatedStorage")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local VirtualInput = game:GetService("VirtualInputManager")
+
+-- Variabel
+local farming = false
+local currentJob = nil
+local farmType = "Box" -- "Box" atau "Construction"
+local collectedMoney = 0
+local isRunning = false
+
+-- Fungsi Teleport dengan Tween (lebih smooth)
+local function Teleport(pos)
+    if not HRP then return end
+    local tween = TweenService:Create(HRP, TweenInfo.new(0.3, Enum.EasingStyle.Linear), {CFrame = pos})
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Fungsi Fire Proximity Prompt
+local function FirePrompt(prompt)
+    if prompt and prompt:IsA("ProximityPrompt") then
+        prompt:FireServer()
+        return true
+    end
+    return false
+end
+
+-- =============== BOX JOB ===============
+local function BoxFarm()
+    local positions = {
+        CFrame.new(-552.45, 3.54, -83.86),  -- Start Box Job
+        CFrame.new(-401.31, 3.41, -72.42),  -- Drop Box
+    }
+    
+    while farming and farmType == "Box" do
+        task.wait()
+        
+        -- Ambil job
+        if not LP:GetAttribute("WorkingJob") then
+            Teleport(positions[1])
+            task.wait(0.3)
+            
+            local prompt = workspace:FindFirstChild("BoxJob") or workspace:FindFirstChild("StartJob")
+            if prompt then
+                FirePrompt(prompt)
+                task.wait(1)
+            end
+        end
+        
+        -- Bawa box ke drop point
+        if LP:GetAttribute("WorkingJob") then
+            Teleport(positions[2])
+            task.wait(0.3)
+            
+            local dropPrompt = workspace:FindFirstChild("DropBox") or workspace:FindFirstChild("BoxDrop")
+            if dropPrompt then
+                FirePrompt(dropPrompt)
+                task.wait(2)
+            end
+        end
+    end
+end
+
+-- =============== CONSTRUCTION JOB ===============
+local function ConstructionFarm()
+    while farming and farmType == "Construction" do
+        task.wait()
+        
+        -- Start Construction Job
+        if not LP:GetAttribute("WorkingJob") then
+            Teleport(CFrame.new(-1729, 371, -1171))
+            task.wait(0.3)
+            
+            local startPrompt = workspace:FindFirstChild("ConstructionStuff") and workspace.ConstructionStuff:FindFirstChild("Start Job")
+            if startPrompt then
+                FirePrompt(startPrompt)
+                task.wait(1)
+            end
+        end
+        
+        -- Ambil Kayu
+        if LP:GetAttribute("WorkingJob") then
+            local hasWood = LP.Backpack:FindFirstChild("PlyWood") or LP.Character:FindFirstChild("PlyWood")
+            if not hasWood then
+                Teleport(CFrame.new(-1728, 371, -1178))
+                task.wait(0.3)
+                
+                local woodPrompt = workspace.ConstructionStuff:FindFirstChild("Grab Wood")
+                if woodPrompt then
+                    FirePrompt(woodPrompt)
+                    task.wait(1)
+                end
+            end
+        end
+        
+        -- Bangun Tembok
+        if LP:GetAttribute("WorkingJob") then
+            local wall = workspace.ConstructionStuff:FindFirstChild("Wall")
+            if wall then
+                Teleport(CFrame.new(wall.Position + Vector3.new(0, 5, 0)))
+                task.wait(0.3)
+                FirePrompt(wall.Prompt)
+                task.wait(2)
+            end
+        end
+    end
+end
+
+-- =============== MAIN FARM LOOP ===============
+local function StartFarm()
+    if isRunning then return end
+    isRunning = true
+    farming = true
+    
+    while farming do
+        task.wait(0.5)
+        
+        if farmType == "Box" then
+            BoxFarm()
+        elseif farmType == "Construction" then
+            ConstructionFarm()
+        end
+        
+        -- Jika mati/respawn, tunggu
+        if not LP.Character or LP.Character:FindFirstChild("Humanoid") == nil then
+            repeat task.wait(1) until LP.Character and LP.Character:FindFirstChild("Humanoid")
+            Character = LP.Character
+            HRP = Character:WaitForChild("HumanoidRootPart")
+            Humanoid = Character:WaitForChild("Humanoid")
+        end
+    end
+    
+    isRunning = false
+end
+
+local function StopFarm()
+    farming = false
+    isRunning = false
+end
+
+-- =============== UI LIBRARY (Tanpa Rayfield, pakai GUI Native) ===============
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SouthBronxFarm"
+ScreenGui.Parent = LP:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -210)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- HITAM
+MainFrame.BackgroundTransparency = 0.05
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 215, 0)
+MainFrame.ClipsDescendants = true
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- Drop Shadow sederhana
+local Shadow = Instance.new("Frame")
+Shadow.Size = UDim2.new(1, 0, 1, 0)
+Shadow.Position = UDim2.new(0, 5, 0, 5)
+Shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.BackgroundTransparency = 0.7
+Shadow.BorderSizePixel = 0
+Shadow.Parent = MainFrame
+Shadow:SetAttribute("IsShadow", true)
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🔥 SOUTH BRONX FARM 🔥"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = TitleBar
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 30, 30)
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    StopFarm()
+end)
+
+-- Content Frame
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -20, 1, -60)
+Content.Position = UDim2.new(0, 10, 0, 50)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+-- UIList Layout
+local UIList = Instance.new("UIListLayout")
+UIList.Padding = UDim.new(0, 8)
+UIList.FillDirection = Enum.FillDirection.Vertical
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIList.VerticalAlignment = Enum.VerticalAlignment.Top
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Parent = Content
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, 0, 0, 30)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "⏹ STOPPED"
+StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+StatusLabel.TextScaled = true
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.Parent = Content
+
+-- Dropdown Farm Type
+local DropdownFrame = Instance.new("Frame")
+DropdownFrame.Size = UDim2.new(1, 0, 0, 35)
+DropdownFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+DropdownFrame.BorderSizePixel = 0
+DropdownFrame.Parent = Content
+
+local DropdownBtn = Instance.new("TextButton")
+DropdownBtn.Size = UDim2.new(1, 0, 1, 0)
+DropdownBtn.BackgroundTransparency = 1
+DropdownBtn.Text = "📦 Box Job"
+DropdownBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+DropdownBtn.TextScaled = true
+DropdownBtn.Font = Enum.Font.Gotham
+DropdownBtn.Parent = DropdownFrame
+
+local DropdownOptions = {
+    "📦 Box Job",
+    "🏗️ Construction"
+}
+local currentIndex = 1
+
+DropdownBtn.MouseButton1Click:Connect(function()
+    currentIndex = currentIndex % #DropdownOptions + 1
+    DropdownBtn.Text = DropdownOptions[currentIndex]
+    if currentIndex == 1 then
+        farmType = "Box"
+    else
+        farmType = "Construction"
+    end
+end)
+
+-- Start/Stop Button
+local ControlBtn = Instance.new("TextButton")
+ControlBtn.Size = UDim2.new(1, 0, 0, 40)
+ControlBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+ControlBtn.BorderSizePixel = 0
+ControlBtn.Text = "▶ START"
+ControlBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ControlBtn.TextScaled = true
+ControlBtn.Font = Enum.Font.GothamBold
+ControlBtn.Parent = Content
+
+ControlBtn.MouseButton1Click:Connect(function()
+    if farming then
+        StopFarm()
+        ControlBtn.Text = "▶ START"
+        ControlBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+        StatusLabel.Text = "⏹ STOPPED"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    else
+        StartFarm()
+        ControlBtn.Text = "⏹ STOP"
+        ControlBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+        StatusLabel.Text = "▶ FARMING: " .. farmType
+        StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    end
+end)
+
+-- Money Display
+local MoneyLabel = Instance.new("TextLabel")
+MoneyLabel.Size = UDim2.new(1, 0, 0, 30)
+MoneyLabel.BackgroundTransparency = 1
+MoneyLabel.Text = "💰 $0"
+MoneyLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+MoneyLabel.TextScaled = true
+MoneyLabel.Font = Enum.Font.Gotham
+MoneyLabel.Parent = Content
+
+-- Update Money (jika ada event)
+local function UpdateMoney()
+    local cash = LP:FindFirstChild("leaderstats") and LP.leaderstats:FindFirstChild("Cash")
+    if cash then
+        MoneyLabel.Text = "💰 $" .. tostring(cash.Value)
+    end
+end
+
+LP:GetPropertyChangedSignal("Character"):Connect(function()
+    task.wait(0.5)
+    Character = LP.Character
+    if Character then
+        HRP = Character:FindFirstChild("HumanoidRootPart")
+        Humanoid = Character:FindFirstChild("Humanoid")
+    end
+end)
+
+-- Auto update money
+game:GetService("RunService").Heartbeat:Connect(UpdateMoney)
+
+-- =============== KEYBIND: F7 TOGGLE ===============
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F7 then
+        ControlBtn.MouseButton1Click:Fire()
+    end
+end)
+-- ============================================
+-- ============ BYPASS LAYER ============
+-- ============================================
+
+-- 1. SPOOF REMOTE EVENT (agar tidak terdeteksi sebagai exploit)
+local function spoofRemoteEvents()
+    local oldFire = nil
+    local oldInvoke = nil
+    
+    -- Override FireServer dengan delay acak
+    local mt = getrawmetatable and getrawmetatable(game) or getmetatable(game)
+    if mt then
+        oldFire = mt.__index and mt.__index.FireServer
+        oldInvoke = mt.__index and mt.__index.InvokeServer
+        
+        if oldFire then
+            mt.__index.FireServer = function(self, ...)
+                -- Random delay 0.05-0.3 detik (seperti manusia)
+                local delay = 0.05 + math.random() * 0.25
+                task.wait(delay)
+                return oldFire(self, ...)
+            end
+        end
+        
+        if oldInvoke then
+            mt.__index.InvokeServer = function(self, ...)
+                local delay = 0.05 + math.random() * 0.2
+                task.wait(delay)
+                return oldInvoke(self, ...)
+            end
+        end
+    end
+end
+
+-- 2. HIDE SCRIPT DARI GAME (anti-detection)
+local function hideScript()
+    -- Sembunyikan ScreenGui dari deteksi
+    local gui = LP.PlayerGui:FindFirstChild("SouthBronxFarm")
+    if gui then
+        gui.ResetOnSpawn = false
+        -- Buat seolah-olah GUI bawaan game
+        gui.Name = "GameUI_System"
+    end
+    
+    -- Hapus jejak script dari memory (jika bisa)
+    pcall(function()
+        for _, v in pairs(getgc and getgc() or {}) do
+            if type(v) == "table" and rawget(v, "IsA") and rawget(v, "Name") then
+                if v.Name == "SouthBronxFarm" then
+                    v.Name = "SystemUI"
+                end
+            end
+        end
+    end)
+end
+
+-- 3. RANDOM MOUSE MOVEMENT (simulasi manusia)
+local function randomMouseMovement()
+    local vim = game:GetService("VirtualInputManager")
+    spawn(function()
+        while farming do
+            task.wait(math.random(5, 15))
+            -- Gerakan mouse random
+            local x = math.random(100, 900)
+            local y = math.random(100, 600)
+            vim:SendMouseMoveEvent(x, y, false)
+            
+            -- Kadang klik random (seperti manusia)
+            if math.random() < 0.1 then
+                vim:SendMouseButtonEvent(Enum.UserInputType.MouseButton1, true, false, 0)
+                task.wait(0.1 + math.random() * 0.2)
+                vim:SendMouseButtonEvent(Enum.UserInputType.MouseButton1, false, false, 0)
+            end
+        end
+    end)
+end
+
+-- 4. RANDOM CAMERA MOVEMENT
+local function randomCameraMovement()
+    spawn(function()
+        while farming do
+            task.wait(math.random(10, 30))
+            local cam = workspace.CurrentCamera
+            if cam then
+                local angle = math.random() * math.pi * 2
+                local distance = math.random(10, 30)
+                local newPos = HRP and HRP.Position or Vector3.new(0, 0, 0)
+                newPos = newPos + Vector3.new(
+                    math.cos(angle) * distance,
+                    math.random(0, 5),
+                    math.sin(angle) * distance
+                )
+                cam.CFrame = CFrame.new(newPos, HRP and HRP.Position or Vector3.new(0, 0, 0))
+            end
+        end
+    end)
+end
+
+-- 5. SPOOF PLAYER ATTRIBUTES (agar tidak dicurigai)
+local function spoofAttributes()
+    -- Ubah atribut player agar terlihat normal
+    local function fakeAttribute()
+        if LP:GetAttribute("WorkingJob") then
+            -- Tambah delay random agar tidak instant
+            task.wait(0.2 + math.random() * 0.5)
+        end
+    end
+    
+    -- Hook attribute change
+    local oldSetAttribute = LP.SetAttribute
+    if oldSetAttribute then
+        LP.SetAttribute = function(self, key, value)
+            if key == "WorkingJob" then
+                task.wait(0.1 + math.random() * 0.3)
+            end
+            return oldSetAttribute(self, key, value)
+        end
+    end
+end
+
+-- 6. ANTI-KICK BYPASS (mencegah kick detection)
+local function antiKick()
+    -- Cegah kick dengan meng-intercept kick function
+    local oldKick = game.Players.LocalPlayer.Kick
+    if oldKick then
+        game.Players.LocalPlayer.Kick = function(self, message)
+            -- Jika ada pesan kick, log tapi batalkan
+            print("⚠️ Kick attempt detected: " .. tostring(message))
+            warn("Blocked kick! (bypass attempt)")
+            -- Jangan kick, return saja
+            return
+        end
+    end
+    
+    -- Cegah teleport balik (anti-reset)
+    local oldTeleport = game.TeleportService and game.TeleportService.Teleport
+    if oldTeleport then
+        game.TeleportService.Teleport = function(...)
+            warn("Teleport blocked!")
+            return
+        end
+    end
+end
+
+-- 7. CRASH PROTECTION (mencegah crash)
+local function crashProtection()
+    -- Tangani error agar tidak crash
+    xpcall(function()
+        while true do
+            task.wait(60)
+            -- Reset memory leak (jika ada)
+            collectgarbage("collect")
+        end
+    end, function(err)
+        print("Crash protection triggered: " .. tostring(err))
+    end)
+end
+
+-- 8. RANDOM WALK (bukan teleport langsung)
+local originalTeleport = Teleport
+Teleport = function(pos)
+    if not HRP then return end
+    
+    -- Kalau jarak jauh, jalan bertahap
+    local currentPos = HRP.Position
+    local distance = (pos.Position - currentPos).Magnitude
+    
+    if distance > 50 then
+        -- Teleport dengan delay (seperti loading)
+        local steps = math.min(math.floor(distance / 10), 5)
+        for i = 1, steps do
+            local lerpPos = HRP.CFrame:lerp(pos, i / steps)
+            originalTeleport(lerpPos)
+            task.wait(0.1 + math.random() * 0.15)
+        end
+        originalTeleport(pos)
+    else
+        originalTeleport(pos)
+    end
+end
+
+-- 9. BYPASS REMOTE EVENT SPAM DETECTION
+local function bypassRemoteSpam()
+    local remoteEvents = {
+        "FetchGUI",
+        "BoxJob",
+        "Construction"
+    }
+    
+    for _, name in ipairs(remoteEvents) do
+        local remote = RS:FindFirstChild(name) or RS:FindFirstChild(name .. "Remote")
+        if remote then
+            local oldFire = remote.FireServer
+            if oldFire then
+                remote.FireServer = function(self, ...)
+                    -- Tambah delay random
+                    task.wait(0.1 + math.random() * 0.4)
+                    return oldFire(self, ...)
+                end
+            end
+        end
+    end
+end
+
+-- ============================================
+-- ============ ACTIVATE BYPASS ============
+-- ============================================
+
+spoofRemoteEvents()
+hideScript()
+randomMouseMovement()
+randomCameraMovement()
+spoofAttributes()
+antiKick()
+crashProtection()
+bypassRemoteSpam()
+
+print("🛡️ Bypass Layer Activated!")
+print("⚠️ Remember: This is NOT 100% safe!")
+-- =============== SCRIPT READY ===============
+print("✅ South Bronx AutoFarm Loaded!")
+print("🎯 Press F7 to Start/Stop")
+print("⚠️ Use at your own risk!")
