@@ -1,0 +1,528 @@
+--[[    
+SCRIPT AUTOFARM SOUTH BRONX
+    Fitur: Auto Box Job, Auto Construction, Auto Collect Money, Auto Marshmallow
+    Warna Background: Hitam (#000000)
+    Gunakan dengan risiko sendiri!
+    Updated: Anti-Kick & Slow Execution
+]]
+
+-- Cek executor
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local Character = LP.Character or LP.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+local RS = game:GetService("ReplicatedStorage")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local VirtualInput = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+
+-- =============== ANTI-KICK BYPASS ===============
+-- Fake ping and latency
+local function FakePing()
+    local oldSend = game:GetService("ReplicatedStorage").RemoteEvent.FireServer
+    local oldInvoke = game:GetService("ReplicatedStorage").RemoteFunction.InvokeServer
+    
+    -- Delay semua remote
+    local function delayRemote(...)
+        task.wait(math.random(15, 30) / 100) -- 0.15 - 0.30 detik delay
+        return oldSend(...)
+    end
+    
+    local function delayRemoteInvoke(...)
+        task.wait(math.random(10, 25) / 100) -- 0.10 - 0.25 detik delay
+        return oldInvoke(...)
+    end
+    
+    -- Override dengan delay
+    if RS:FindFirstChild("RemoteEvent") then
+        RS.RemoteEvent.FireServer = delayRemote
+    end
+    if RS:FindFirstChild("RemoteFunction") then
+        RS.RemoteFunction.InvokeServer = delayRemoteInvoke
+    end
+end
+
+-- Random movement untuk anti-AFK
+local function RandomMovement()
+    while farming do
+        task.wait(math.random(30, 60))
+        if Humanoid and HRP then
+            -- Gerakan random kecil
+            local randomDir = math.random(0, 360)
+            local randomDist = math.random(2, 5)
+            local targetPos = HRP.Position + Vector3.new(
+                math.sin(randomDir) * randomDist,
+                0,
+                math.cos(randomDir) * randomDist
+            )
+            
+            -- Tween ke posisi random
+            local tween = TweenService:Create(HRP, 
+                TweenInfo.new(0.5 + math.random() * 0.5, Enum.EasingStyle.Linear), 
+                {CFrame = CFrame.new(targetPos)}
+            )
+            tween:Play()
+            tween.Completed:Wait()
+            
+            -- Lompat random
+            if math.random(1, 3) == 1 then
+                Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                task.wait(0.1)
+            end
+        end
+    end
+end
+
+-- Fake lag simulation
+local function SimulateLag()
+    task.wait(math.random(5, 15) / 100) -- 0.05 - 0.15 detik
+end
+
+-- =============== ANTI-STUCK ===============
+local stuckTimer = 0
+local lastPosition = Vector3.new(0, 0, 0)
+
+local function CheckStuck()
+    if not HRP then return false end
+    
+    local currentPos = HRP.Position
+    if (currentPos - lastPosition).Magnitude < 0.5 then
+        stuckTimer = stuckTimer + 1
+        if stuckTimer > 5 then -- 5 detik stuck
+            stuckTimer = 0
+            return true
+        end
+    else
+        stuckTimer = 0
+        lastPosition = currentPos
+    end
+    return false
+end
+
+local function HandleStuck()
+    if CheckStuck() then
+        -- Lompat dan gerak mundur
+        Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        task.wait(0.2)
+        HRP.CFrame = HRP.CFrame * CFrame.new(0, 0, -3)
+        task.wait(0.5)
+        
+        -- Reset posisi ke spawn
+        local spawnCF = CFrame.new(-552.45, 3.54, -83.86)
+        if farmType == "Construction" then
+            spawnCF = CFrame.new(-1729, 371, -1171)
+        elseif farmType == "Marshmallow" then
+            spawnCF = CFrame.new(-1361.33, 4.32, -952.24)
+        end
+        
+        Teleport(spawnCF, true)
+        task.wait(1)
+        return true
+    end
+    return false
+end
+
+-- Konfigurasi Kecepatan (diperlambat agar tidak stuck)
+local CONFIG = {
+    TeleportDelay = 0.8,          -- Delay antar teleport (lebih lambat)
+    ActionDelay = 1.2,            -- Delay antar aksi (lebih lambat)
+    WaitDelay = 1.5,              -- Delay tunggu (lebih lambat)
+    RandomDelayMin = 0.5,         -- Delay random minimum (lebih lama)
+    RandomDelayMax = 1.5,         -- Delay random maksimum (lebih lama)
+    WalkSpeed = 14,               -- Kecepatan jalan normal (lebih lambat)
+    JumpPower = 40,               -- Kekuatan lompat (lebih rendah)
+    MaxDistance = 20,             -- Jarak maksimum teleport (lebih pendek)
+}
+
+-- Fungsi Helper
+local function RandomDelay()
+    return CONFIG.RandomDelayMin + math.random() * (CONFIG.RandomDelayMax - CONFIG.RandomDelayMin)
+end
+
+local function WaitWithDelay()
+    task.wait(CONFIG.WaitDelay + RandomDelay())
+    SimulateLag() -- Tambah fake lag
+end
+
+-- Fungsi Teleport dengan Tween (lebih smooth dan lambat)
+local function Teleport(pos, instant)
+    if not HRP then return end
+    
+    -- Cek stuck dulu
+    if CheckStuck() then
+        HandleStuck()
+        return
+    end
+    
+    local currentPos = HRP.Position
+    local distance = (pos.Position - currentPos).Magnitude
+    
+    -- Jika jarak terlalu jauh, teleport bertahap (lebih banyak steps)
+    if distance > CONFIG.MaxDistance and not instant then
+        local steps = math.min(math.floor(distance / 10), 12) -- Lebih banyak steps
+        for i = 1, steps do
+            local lerpCF = HRP.CFrame:lerp(pos, i / steps)
+            local tween = TweenService:Create(HRP, 
+                TweenInfo.new(CONFIG.TeleportDelay * 0.8, Enum.EasingStyle.Linear), 
+                {CFrame = lerpCF}
+            )
+            tween:Play()
+            tween.Completed:Wait()
+            task.wait(0.2 + RandomDelay() * 0.5) -- Delay lebih lama
+            
+            -- Cek jika stuck, lompat
+            if HRP and (HRP.Position - currentPos).Magnitude < 1 then
+                Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                task.wait(0.3)
+            end
+            
+            -- Fake lag setiap step
+            SimulateLag()
+        end
+    end
+    
+    -- Teleport akhir dengan tween (lebih lambat)
+    local tweenTime = instant and 0.5 or CONFIG.TeleportDelay * 1.5
+    local tween = TweenService:Create(HRP, 
+        TweenInfo.new(tweenTime, Enum.EasingStyle.Linear), 
+        {CFrame = pos}
+    )
+    tween:Play()
+    tween.Completed:Wait()
+    task.wait(CONFIG.TeleportDelay * 0.8)
+    SimulateLag()
+end
+
+-- Fungsi Fire Proximity Prompt dengan delay lebih lama
+local function FirePrompt(prompt)
+    if prompt and prompt:IsA("ProximityPrompt") then
+        task.wait(CONFIG.ActionDelay * 0.8 + RandomDelay() * 0.5) -- Delay lebih lama
+        prompt:FireServer()
+        task.wait(CONFIG.ActionDelay * 1.5 + RandomDelay() * 0.8) -- Delay lebih lama
+        SimulateLag()
+        return true
+    end
+    return false
+end
+
+-- =============== BOX JOB ===============
+local function BoxFarm()
+    local positions = {
+        start = CFrame.new(-552.45, 3.54, -83.86),
+        drop = CFrame.new(-401.31, 3.41, -72.42),
+    }
+    
+    local attempts = 0
+    local maxAttempts = 5
+    local errorCount = 0
+    
+    while farming and farmType == "Box" and isBoxFarming do
+        task.wait(CONFIG.WaitDelay * 0.8) -- Delay lebih lama
+        
+        -- Cek stuck
+        if HandleStuck() then
+            task.wait(2)
+            continue
+        end
+        
+        -- Ambil job
+        if not LP:GetAttribute("WorkingJob") then
+            attempts = 0
+            Teleport(positions.start)
+            WaitWithDelay()
+            
+            local prompt = Workspace:FindFirstChild("BoxJob") or Workspace:FindFirstChild("StartJob")
+            if prompt then
+                FirePrompt(prompt)
+            end
+            WaitWithDelay()
+        end
+        
+        -- Bawa box ke drop point
+        if LP:GetAttribute("WorkingJob") then
+            Teleport(positions.drop)
+            WaitWithDelay()
+            
+            local dropPrompt = Workspace:FindFirstChild("DropBox") or Workspace:FindFirstChild("BoxDrop")
+            if dropPrompt then
+                FirePrompt(dropPrompt)
+                WaitWithDelay()
+                attempts = 0
+                errorCount = 0
+            end
+        end
+        
+        -- Jika stuck, coba reset dengan delay lebih lama
+        attempts = attempts + 1
+        if attempts >= maxAttempts then
+            -- Teleport ke spawn
+            Teleport(CFrame.new(-552.45, 3.54, -83.86), true)
+            task.wait(3)
+            attempts = 0
+            errorCount = errorCount + 1
+            
+            -- Jika terlalu banyak error, pause sebentar
+            if errorCount > 3 then
+                task.wait(5)
+                errorCount = 0
+            end
+        end
+        
+        -- Random pause
+        if math.random(1, 5) == 1 then
+            task.wait(math.random(1, 3))
+        end
+    end
+end
+
+-- =============== CONSTRUCTION JOB ===============
+local function ConstructionFarm()
+    local positions = {
+        start = CFrame.new(-1729, 371, -1171),
+        wood = CFrame.new(-1728, 371, -1178),
+    }
+    
+    local attempts = 0
+    local maxAttempts = 5
+    local errorCount = 0
+    
+    while farming and farmType == "Construction" and isConstructionFarming do
+        task.wait(CONFIG.WaitDelay * 0.8)
+        
+        -- Cek stuck
+        if HandleStuck() then
+            task.wait(2)
+            continue
+        end
+        
+        -- Start Construction Job
+        if not LP:GetAttribute("WorkingJob") then
+            attempts = 0
+            Teleport(positions.start)
+            WaitWithDelay()
+            
+            local startPrompt = Workspace:FindFirstChild("ConstructionStuff") and Workspace.ConstructionStuff:FindFirstChild("Start Job")
+            if startPrompt then
+                FirePrompt(startPrompt)
+            end
+            WaitWithDelay()
+        end
+        
+        -- Ambil Kayu
+        if LP:GetAttribute("WorkingJob") then
+            local hasWood = LP.Backpack:FindFirstChild("PlyWood") or LP.Character:FindFirstChild("PlyWood")
+            if not hasWood then
+                Teleport(positions.wood)
+                WaitWithDelay()
+                
+                local woodPrompt = Workspace.ConstructionStuff:FindFirstChild("Grab Wood")
+                if woodPrompt then
+                    FirePrompt(woodPrompt)
+                end
+                WaitWithDelay()
+            end
+        end
+        
+        -- Bangun Tembok
+        if LP:GetAttribute("WorkingJob") then
+            local wall = Workspace.ConstructionStuff:FindFirstChild("Wall")
+            if wall then
+                local wallPos = CFrame.new(wall.Position + Vector3.new(0, 5, 0))
+                Teleport(wallPos)
+                WaitWithDelay()
+                
+                if wall:FindFirstChild("Prompt") then
+                    FirePrompt(wall.Prompt)
+                    WaitWithDelay()
+                    attempts = 0
+                    errorCount = 0
+                end
+            end
+        end
+        
+        -- Jika stuck, coba reset
+        attempts = attempts + 1
+        if attempts >= maxAttempts then
+            Teleport(positions.start, true)
+            task.wait(3)
+            attempts = 0
+            errorCount = errorCount + 1
+            
+            if errorCount > 3 then
+                task.wait(5)
+                errorCount = 0
+            end
+        end
+        
+        -- Random pause
+        if math.random(1, 5) == 1 then
+            task.wait(math.random(1, 3))
+        end
+    end
+end
+
+-- =============== MARSHMALLOW FARM ===============
+local function MarshmallowFarm()
+    local marshmallowPositions = {
+        CFrame.new(-1361.33, 4.32, -952.24),
+        CFrame.new(-1355.61, 4.35, -955.79),
+        CFrame.new(-1348.21, 4.33, -953.01),
+        CFrame.new(-1351.79, 4.31, -949.47),
+        CFrame.new(-1359.21, 4.34, -947.98),
+        CFrame.new(-1343.61, 4.36, -950.81),
+        CFrame.new(-1367.42, 4.32, -955.13),
+    }
+    
+    local currentIndex = 1
+    local attempts = 0
+    local maxAttempts = 7
+    local errorCount = 0
+    
+    while farming and farmType == "Marshmallow" and isMarshmallowFarming do
+        task.wait(CONFIG.WaitDelay * 0.5)
+        
+        -- Cek stuck
+        if HandleStuck() then
+            task.wait(2)
+            continue
+        end
+        
+        -- Cari marshmallow terdekat
+        local nearestMarsh = nil
+        local nearestDist = math.huge
+        
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v.Name == "Marshmallow" or v.Name == "MarshmallowCrate" then
+                local pos = v:FindFirstChild("Position") or v:FindFirstChild("CFrame")
+                if pos then
+                    local dist = (HRP.Position - (pos.Position or pos.p)).Magnitude
+                    if dist < nearestDist and dist < 80 then
+                        nearestDist = dist
+                        nearestMarsh = v
+                    end
+                end
+            end
+        end
+        
+        if nearestMarsh then
+            -- Teleport ke marshmallow
+            local marshPos = nearestMarsh:FindFirstChild("Position") or nearestMarsh:FindFirstChild("CFrame")
+            if marshPos then
+                Teleport(CFrame.new(marshPos.Position or marshPos.p))
+                WaitWithDelay()
+                
+                -- Ambil marshmallow
+                local prompt = nearestMarsh:FindFirstChild("Prompt") or nearestMarsh:FindFirstChild("ProximityPrompt")
+                if prompt then
+                    FirePrompt(prompt)
+                    WaitWithDelay()
+                    attempts = 0
+                    errorCount = 0
+                end
+            end
+        else
+            -- Pindah ke posisi berikutnya jika tidak ada marshmallow
+            if currentIndex > #marshmallowPositions then
+                currentIndex = 1
+            end
+            
+            Teleport(marshmallowPositions[currentIndex])
+            WaitWithDelay()
+            currentIndex = currentIndex + 1
+        end
+        
+        -- Jika stuck, coba reset
+        attempts = attempts + 1
+        if attempts >= maxAttempts then
+            Teleport(marshmallowPositions[1], true)
+            task.wait(3)
+            attempts = 0
+            errorCount = errorCount + 1
+            
+            if errorCount > 3 then
+                task.wait(5)
+                errorCount = 0
+            end
+        end
+        
+        -- Random pause
+        if math.random(1, 5) == 1 then
+            task.wait(math.random(1, 3))
+        end
+    end
+end
+
+-- =============== MAIN FARM LOOP ===============
+local function StartFarm()
+    if isRunning then return end
+    isRunning = true
+    farming = true
+    
+    -- Set kecepatan (lebih lambat)
+    if Humanoid then
+        Humanoid.WalkSpeed = CONFIG.WalkSpeed
+        Humanoid.JumpPower = CONFIG.JumpPower
+    end
+    
+    -- Aktifkan anti-kick
+    FakePing()
+    
+    -- Start random movement di background
+    spawn(RandomMovement)
+    
+    -- Aktifkan farm sesuai tipe
+    if farmType == "Box" then
+        isBoxFarming = true
+        isConstructionFarming = false
+        isMarshmallowFarming = false
+        BoxFarm()
+    elseif farmType == "Construction" then
+        isBoxFarming = false
+        isConstructionFarming = true
+        isMarshmallowFarming = false
+        ConstructionFarm()
+    elseif farmType == "Marshmallow" then
+        isBoxFarming = false
+        isConstructionFarming = false
+        isMarshmallowFarming = true
+        MarshmallowFarm()
+    end
+    
+    isRunning = false
+    farming = false
+end
+
+local function StopFarm()
+    farming = false
+    isRunning = false
+    isBoxFarming = false
+    isConstructionFarming = false
+    isMarshmallowFarming = false
+end
+
+-- =============== UI LIBRARY (SAME AS BEFORE) ===============
+-- [UI Code tetap sama seperti sebelumnya untuk menghemat space]
+
+-- =============== KEYBIND: F7 TOGGLE ===============
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F7 then
+        if not farming then
+            StartFarm()
+        else
+            StopFarm()
+        end
+    end
+end)
+
+-- =============== STARTUP ===============
+print("✅ South Bronx AutoFarm Loaded!")
+print("🎯 Press F7 to Start/Stop")
+print("⚠️ Use at your own risk!")
+print("🛡️ Anti-Kick & Anti-Stuck Activated")
