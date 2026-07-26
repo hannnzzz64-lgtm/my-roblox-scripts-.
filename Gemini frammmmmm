@@ -1,0 +1,109 @@
+--[[
+    Script: South Bronx: The Trenches - Marshmallow Auto Farm
+    Theme: Pure Black (#000000)
+]]--
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Cek apakah GUI sudah ada, jika ada hapus dulu
+if CoreGui:FindFirstChild("SouthBronxMarshmallowGUI") then
+    CoreGui.SouthBronxMarshmallowGUI:Destroy()
+end
+
+-- Membuat ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SouthBronxMarshmallowGUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Membuat Main Frame (Warna Hitam #000000)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BorderColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 1
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
+MainFrame.Size = UDim2.new(0, 250, 0, 150)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Judul / Header
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Title.BorderSizePixel = 0
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "SOUTH BRONX - FARM"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 14
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Parent = MainFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0, 10, 0, 45)
+StatusLabel.Size = UDim2.new(1, -20, 0, 25)
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.Text = "Status: OFF"
+StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+StatusLabel.TextSize:integer = 12
+StatusLabel.TextSize = 12
+
+-- Toggle Button Auto Farm
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = MainFrame
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ToggleButton.BorderColor3 = Color3.fromRGB(60, 60, 60)
+ToggleButton.Position = UDim2.new(0, 15, 0, 80)
+ToggleButton.Size = UDim2.new(1, -30, 0, 45)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "START AUTO FARM"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 13
+
+-- Logika Auto Farm Marshmallow
+local autoFarmActive = false
+
+local function getMarshmallow()
+    -- Mencari objek Marshmallow di Workspace (sesuaikan dengan nama objek asli di game)
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if (obj.Name:lower():find("marshmallow") or obj.Name:lower():find("marsh")) and obj:IsA("BasePart") then
+            return obj
+        end
+    end
+    return nil
+end
+
+ToggleButton.MouseButton1Click:Connect(function()
+    autoFarmActive = not autoFarmActive
+    if autoFarmActive then
+        ToggleButton.Text = "STOP AUTO FARM"
+        ToggleButton.TextColor3 = Color3.fromRGB(0, 255, 0)
+        StatusLabel.Text = "Status: Running..."
+    else
+        ToggleButton.Text = "START AUTO FARM"
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        StatusLabel.Text = "Status: OFF"
+    end
+end)
+
+-- Loop Utama Auto Farm
+RunService.Heartbeat:Connect(function()
+    if autoFarmActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local target = getMarshmallow()
+        if target then
+            -- Teleport atau gerakkan karakter mendekati Marshmallow
+            LocalPlayer.Character.HumanoidRootPart.CFrame = target.CFrame + Vector3.new(0, 2, 0)
+        end
+    end
+end)
