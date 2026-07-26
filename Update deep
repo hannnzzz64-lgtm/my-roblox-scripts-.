@@ -1,0 +1,566 @@
+Saya akan tambahkan delay yang lebih besar dan random ke script Anda agar lebih "natural" dan mengurangi resiko deteksi.
+
+---
+
+Script dengan Delay Lebih Lambat & Random
+
+Tambahkan kode ini DI BAWAH bagian -- Variabel:
+
+```lua
+-- ============================================
+-- ============ SAFE MODE CONFIG ============
+-- ============================================
+
+-- Konfigurasi delay (semakin besar = semakin aman)
+local CONFIG = {
+    MIN_DELAY = 0.5,      -- Delay minimum (detik)
+    MAX_DELAY = 2.0,      -- Delay maksimum (detik)
+    TELEPORT_DELAY = 0.3, -- Delay antar teleport
+    WALK_SPEED = 16,      -- Kecepatan jalan normal
+    HUMAN_DELAY = true,   -- Aktifkan delay random seperti manusia
+}
+
+-- Fungsi delay random (seperti manusia berpikir)
+local function humanDelay()
+    if not CONFIG.HUMAN_DELAY then return end
+    local delay = CONFIG.MIN_DELAY + math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY)
+    task.wait(delay)
+end
+
+-- Fungsi delay pendek (untuk aksi cepat)
+local function shortDelay()
+    task.wait(0.3 + math.random() * 0.5)
+end
+
+-- Fungsi delay medium (untuk antar job)
+local function mediumDelay()
+    task.wait(0.8 + math.random() * 1.2)
+end
+
+-- Fungsi delay panjang (seperti istirahat)
+local function longDelay()
+    task.wait(2.0 + math.random() * 3.0)
+end
+
+-- Fungsi "berpikir" sebelum action (seperti manusia)
+local function thinkBeforeAction()
+    task.wait(0.5 + math.random() * 1.5)
+end
+
+-- ============================================
+-- ============ MODIFIKASI FUNGSI ============
+-- ============================================
+
+-- OVERRIDE Teleport dengan delay lebih lambat
+local originalTeleport = Teleport
+Teleport = function(pos)
+    if not HRP then return end
+    
+    -- Delay sebelum teleport (seperti manusia memutuskan)
+    thinkBeforeAction()
+    
+    local currentPos = HRP.Position
+    local distance = (pos.Position - currentPos).Magnitude
+    
+    if distance > 30 then
+        -- Jalan bertahap dengan delay lebih lama
+        local steps = math.min(math.floor(distance / 8), 8)
+        for i = 1, steps do
+            local lerpPos = HRP.CFrame:lerp(pos, i / steps)
+            originalTeleport(lerpPos)
+            task.wait(0.3 + math.random() * 0.3) -- Delay lebih lama
+        end
+        originalTeleport(pos)
+        task.wait(0.2 + math.random() * 0.3)
+    else
+        originalTeleport(pos)
+        task.wait(0.2 + math.random() * 0.2)
+    end
+end
+
+-- OVERRIDE FirePrompt dengan delay lebih lambat
+local originalFirePrompt = FirePrompt
+FirePrompt = function(prompt)
+    if prompt and prompt:IsA("ProximityPrompt") then
+        -- Delay sebelum interaksi (seperti manusia mendekat)
+        task.wait(0.3 + math.random() * 0.7)
+        prompt:FireServer()
+        task.wait(0.5 + math.random() * 0.5) -- Delay setelah interaksi
+        return true
+    end
+    return false
+end
+```
+
+---
+
+Kemudian MODIFIKASI fungsi BoxFarm menjadi:
+
+```lua
+-- =============== BOX JOB (LAMBAT) ===============
+local function BoxFarm()
+    local positions = {
+        CFrame.new(-552.45, 3.54, -83.86),
+        CFrame.new(-401.31, 3.41, -72.42),
+    }
+    
+    while farming and farmType == "Box" do
+        task.wait()
+        
+        -- Cek apakah sedang bekerja
+        if not LP:GetAttribute("WorkingJob") then
+            -- Delay sebelum mulai (seperti manusia bersiap)
+            humanDelay()
+            
+            Teleport(positions[1])
+            shortDelay()
+            
+            local prompt = workspace:FindFirstChild("BoxJob") or workspace:FindFirstChild("StartJob")
+            if prompt then
+                FirePrompt(prompt)
+                mediumDelay() -- Tunggu sebentar
+            end
+        end
+        
+        -- Bawa box ke drop point
+        if LP:GetAttribute("WorkingJob") then
+            -- Delay sebelum pindah (seperti manusia mengangkat box)
+            mediumDelay()
+            
+            Teleport(positions[2])
+            shortDelay()
+            
+            local dropPrompt = workspace:FindFirstChild("DropBox") or workspace:FindFirstChild("BoxDrop")
+            if dropPrompt then
+                FirePrompt(dropPrompt)
+                longDelay() -- Tunggu lebih lama setelah drop
+            end
+        end
+        
+        -- Random pause di antara cycle (seperti manusia istirahat)
+        if math.random() < 0.15 then -- 15% chance
+            humanDelay()
+        end
+    end
+end
+```
+
+---
+
+MODIFIKASI fungsi ConstructionFarm menjadi:
+
+```lua
+-- =============== CONSTRUCTION JOB (LAMBAT) ===============
+local function ConstructionFarm()
+    while farming and farmType == "Construction" do
+        task.wait()
+        
+        -- Start Construction Job
+        if not LP:GetAttribute("WorkingJob") then
+            humanDelay()
+            Teleport(CFrame.new(-1729, 371, -1171))
+            shortDelay()
+            
+            local startPrompt = workspace:FindFirstChild("ConstructionStuff") and workspace.ConstructionStuff:FindFirstChild("Start Job")
+            if startPrompt then
+                FirePrompt(startPrompt)
+                mediumDelay()
+            end
+        end
+        
+        -- Ambil Kayu
+        if LP:GetAttribute("WorkingJob") then
+            local hasWood = LP.Backpack:FindFirstChild("PlyWood") or LP.Character:FindFirstChild("PlyWood")
+            if not hasWood then
+                thinkBeforeAction()
+                Teleport(CFrame.new(-1728, 371, -1178))
+                shortDelay()
+                
+                local woodPrompt = workspace.ConstructionStuff:FindFirstChild("Grab Wood")
+                if woodPrompt then
+                    FirePrompt(woodPrompt)
+                    mediumDelay()
+                end
+            end
+        end
+        
+        -- Bangun Tembok
+        if LP:GetAttribute("WorkingJob") then
+            local wall = workspace.ConstructionStuff:FindFirstChild("Wall")
+            if wall then
+                thinkBeforeAction()
+                Teleport(CFrame.new(wall.Position + Vector3.new(0, 5, 0)))
+                shortDelay()
+                FirePrompt(wall.Prompt)
+                longDelay() -- Bangun tembok butuh waktu
+            end
+        end
+        
+        -- Random pause
+        if math.random() < 0.1 then
+            humanDelay()
+        end
+    end
+end
+```
+
+---
+
+Tambahkan Auto-Pause (Istirahat Otomatis)
+
+Tambahkan ini setelah -- Variabel:
+
+```lua
+-- ============================================
+-- ============ AUTO BREAK SYSTEM ============
+-- ============================================
+
+local autoBreak = false
+local breakDuration = 60 -- Istirahat 60 detik
+local farmDuration = 180 -- Farm 3 menit
+local farmStartTime = 0
+
+-- Fungsi auto break (istirahat otomatis)
+local function startAutoBreak()
+    spawn(function()
+        while farming do
+            -- Farm selama farmDuration detik
+            task.wait(farmDuration)
+            
+            if farming then
+                print("⏸️ Auto break: Istirahat " .. breakDuration .. " detik...")
+                farming = false -- Berhenti sementara
+                
+                -- Update UI
+                StatusLabel.Text = "⏸️ BREAK " .. breakDuration .. "s"
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+                ControlBtn.Text = "⏸ BREAK"
+                ControlBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 0)
+                
+                -- Istirahat
+                task.wait(breakDuration)
+                
+                if isRunning then
+                    print("▶️ Resume farming...")
+                    farming = true
+                    StatusLabel.Text = "▶ FARMING: " .. farmType
+                    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                    ControlBtn.Text = "⏹ STOP"
+                    ControlBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+                end
+            end
+        end
+    end)
+end
+
+-- Toggle auto break di UI (opsional)
+-- Tambahkan tombol di UI jika mau
+```
+
+---
+
+Script LENGKAP Yang Dimodifikasi
+
+Ini script lengkap dengan semua modifikasi delay:
+
+```lua
+--[[
+    SCRIPT AUTOFARM SOUTH BRONX - SAFE MODE
+    Dengan delay random dan auto break
+    Warna Background: Hitam (#000000)
+]]
+
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local Character = LP.Character or LP.CharacterAdded:Wait()
+local HRP = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
+local RS = game:GetService("ReplicatedStorage")
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- ============================================
+-- ============ SAFE MODE CONFIG ============
+-- ============================================
+
+local CONFIG = {
+    MIN_DELAY = 0.8,
+    MAX_DELAY = 2.5,
+    TELEPORT_DELAY = 0.5,
+    HUMAN_DELAY = true,
+    AUTO_BREAK = true,
+    BREAK_INTERVAL = 180, -- 3 menit farming
+    BREAK_DURATION = 60,  -- 1 menit istirahat
+}
+
+-- Fungsi delay random
+local function humanDelay()
+    if not CONFIG.HUMAN_DELAY then return end
+    task.wait(CONFIG.MIN_DELAY + math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY))
+end
+
+local function shortDelay() task.wait(0.5 + math.random() * 0.8) end
+local function mediumDelay() task.wait(1.0 + math.random() * 1.5) end
+local function longDelay() task.wait(2.0 + math.random() * 3.0) end
+local function thinkDelay() task.wait(0.8 + math.random() * 2.0) end
+
+-- ============================================
+-- ============ VARIABEL ============
+-- ============================================
+
+local farming = false
+local farmType = "Box"
+local isRunning = false
+local breakActive = false
+
+-- ============================================
+-- ============ FUNGSI DASAR ============
+-- ============================================
+
+local function Teleport(pos)
+    if not HRP then return end
+    thinkDelay()
+    
+    local distance = (pos.Position - HRP.Position).Magnitude
+    if distance > 30 then
+        local steps = math.min(math.floor(distance / 8), 8)
+        for i = 1, steps do
+            local lerpPos = HRP.CFrame:lerp(pos, i / steps)
+            local tween = TweenService:Create(HRP, 
+                TweenInfo.new(0.5 + math.random() * 0.3, Enum.EasingStyle.Linear), 
+                {CFrame = lerpPos}
+            )
+            tween:Play()
+            tween.Completed:Wait()
+            task.wait(0.2 + math.random() * 0.3)
+        end
+    end
+    
+    local tween = TweenService:Create(HRP, 
+        TweenInfo.new(0.3 + math.random() * 0.2, Enum.EasingStyle.Linear), 
+        {CFrame = pos}
+    )
+    tween:Play()
+    tween.Completed:Wait()
+    task.wait(0.2 + math.random() * 0.3)
+end
+
+local function FirePrompt(prompt)
+    if prompt and prompt:IsA("ProximityPrompt") then
+        task.wait(0.5 + math.random() * 1.0)
+        prompt:FireServer()
+        task.wait(0.5 + math.random() * 0.5)
+        return true
+    end
+    return false
+end
+
+-- ============================================
+-- ============ BOX JOB ============
+-- ============================================
+
+local function BoxFarm()
+    local positions = {
+        CFrame.new(-552.45, 3.54, -83.86),
+        CFrame.new(-401.31, 3.41, -72.42),
+    }
+    
+    while farming and farmType == "Box" do
+        task.wait()
+        
+        if not LP:GetAttribute("WorkingJob") then
+            humanDelay()
+            Teleport(positions[1])
+            shortDelay()
+            
+            local prompt = workspace:FindFirstChild("BoxJob") or workspace:FindFirstChild("StartJob")
+            if prompt then
+                FirePrompt(prompt)
+                mediumDelay()
+            end
+        end
+        
+        if LP:GetAttribute("WorkingJob") then
+            mediumDelay()
+            Teleport(positions[2])
+            shortDelay()
+            
+            local dropPrompt = workspace:FindFirstChild("DropBox") or workspace:FindFirstChild("BoxDrop")
+            if dropPrompt then
+                FirePrompt(dropPrompt)
+                longDelay()
+            end
+        end
+        
+        if math.random() < 0.2 then
+            humanDelay()
+        end
+    end
+end
+
+-- ============================================
+-- ============ CONSTRUCTION JOB ============
+-- ============================================
+
+local function ConstructionFarm()
+    while farming and farmType == "Construction" do
+        task.wait()
+        
+        if not LP:GetAttribute("WorkingJob") then
+            humanDelay()
+            Teleport(CFrame.new(-1729, 371, -1171))
+            shortDelay()
+            
+            local startPrompt = workspace:FindFirstChild("ConstructionStuff") and workspace.ConstructionStuff:FindFirstChild("Start Job")
+            if startPrompt then
+                FirePrompt(startPrompt)
+                mediumDelay()
+            end
+        end
+        
+        if LP:GetAttribute("WorkingJob") then
+            local hasWood = LP.Backpack:FindFirstChild("PlyWood") or LP.Character:FindFirstChild("PlyWood")
+            if not hasWood then
+                thinkDelay()
+                Teleport(CFrame.new(-1728, 371, -1178))
+                shortDelay()
+                
+                local woodPrompt = workspace.ConstructionStuff:FindFirstChild("Grab Wood")
+                if woodPrompt then
+                    FirePrompt(woodPrompt)
+                    mediumDelay()
+                end
+            end
+        end
+        
+        if LP:GetAttribute("WorkingJob") then
+            local wall = workspace.ConstructionStuff:FindFirstChild("Wall")
+            if wall then
+                thinkDelay()
+                Teleport(CFrame.new(wall.Position + Vector3.new(0, 5, 0)))
+                shortDelay()
+                FirePrompt(wall.Prompt)
+                longDelay()
+            end
+        end
+        
+        if math.random() < 0.15 then
+            humanDelay()
+        end
+    end
+end
+
+-- ============================================
+-- ============ AUTO BREAK ============
+-- ============================================
+
+local function autoBreakSystem()
+    spawn(function()
+        while true do
+            task.wait(CONFIG.BREAK_INTERVAL)
+            if farming and CONFIG.AUTO_BREAK then
+                print("⏸️ Auto break: Istirahat " .. CONFIG.BREAK_DURATION .. " detik...")
+                farming = false
+                breakActive = true
+                
+                if StatusLabel then
+                    StatusLabel.Text = "⏸️ BREAK " .. CONFIG.BREAK_DURATION .. "s"
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+                end
+                
+                task.wait(CONFIG.BREAK_DURATION)
+                
+                if isRunning then
+                    farming = true
+                    breakActive = false
+                    print("▶️ Resume farming...")
+                    if StatusLabel then
+                        StatusLabel.Text = "▶ FARMING: " .. farmType
+                        StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- ============================================
+-- ============ MAIN FARM ============
+-- ============================================
+
+local function StartFarm()
+    if isRunning then return end
+    isRunning = true
+    farming = true
+    
+    if CONFIG.AUTO_BREAK then
+        autoBreakSystem()
+    end
+    
+    while farming do
+        task.wait(0.5)
+        
+        if farmType == "Box" then
+            BoxFarm()
+        elseif farmType == "Construction" then
+            ConstructionFarm()
+        end
+        
+        if not LP.Character or not LP.Character:FindFirstChild("Humanoid") then
+            repeat task.wait(2) until LP.Character and LP.Character:FindFirstChild("Humanoid")
+            Character = LP.Character
+            HRP = Character:WaitForChild("HumanoidRootPart")
+            Humanoid = Character:WaitForChild("Humanoid")
+        end
+    end
+    
+    isRunning = false
+end
+
+local function StopFarm()
+    farming = false
+    isRunning = false
+    breakActive = false
+end
+
+-- ============================================
+-- ============ UI ============
+-- ============================================
+
+-- (UI SAMA SEPERTI SCRIPT ANDA, TIDAK SAYA TULIS ULANG UNTUK HEMAT SPACE)
+
+-- ============================================
+-- ============ BYPASS LAYER ============
+-- ============================================
+
+-- (BYPASS SAMA SEPERTI SCRIPT ANDA)
+
+print("✅ South Bronx AutoFarm - SAFE MODE Loaded!")
+print("🎯 Press F7 to Start/Stop")
+print("⏱️ Auto break: " .. CONFIG.BREAK_INTERVAL .. "s farm, " .. CONFIG.BREAK_DURATION .. "s break")
+print("⚠️ Use at your own risk!")
+```
+
+---
+
+Perbandingan Kecepatan
+
+Action Sebelum Sesudah (Safe Mode)
+Teleport 0.3 detik 0.5-1.0 detik
+Fire Prompt Instant 0.5-1.5 detik
+Antar Job 0.3 detik 1.0-2.5 detik
+Istirahat Tidak ada 60 detik tiap 3 menit
+
+---
+
+⚠️ Peringatan
+
+Resiko Level
+Kena Kick Masih Ada (tapi lebih rendah)
+Kena Ban Rendah-Sedang
+Farming Lambat Ya (tapi lebih aman)
+
+Tetap gunakan akun ALT dan server sepi!
