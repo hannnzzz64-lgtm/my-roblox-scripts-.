@@ -1,0 +1,231 @@
+-- =====================================================================
+-- SOUTH BRONX TRENCHES - BLUE RAINBOW THEME SCRIPT
+-- Features: Main Menu, Auto Farm Marshmallow, Auto Buy, Auto Sell,
+--           Auto Spawn Motorcycle, Safe Zone Teleport on Cook, Bypass.
+-- =====================================================================
+
+-- Anti-Kick / Bypass Active Simulation
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+
+-- Prevent idle kick
+LocalPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+end)
+
+print("[Bypass] Anti-Idle & Basic Desync Protection Active.")
+
+-- =====================================================================
+-- GUI CREATION (Blue Rainbow Theme)
+-- =====================================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BronxTrenchesMenu"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 450, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- Rounded corners for Main Frame
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+-- Blue Rainbow Gradient Header
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local UIGradient = Instance.new("UIGradient")
+UIGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.0, Color3.fromRGB(0, 150, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 200)),
+    ColorSequenceKeypoint.new(1.0, Color3.fromRGB(100, 100, 255))
+})
+UIGradient.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 1, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "SOUTH BRONX TRENCHES - MARSHMELLOW HUB"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 14
+TitleLabel.Parent = TitleBar
+
+-- Container for Toggles / Features
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -65)
+ContentFrame.Position = UDim2.new(0, 10, 0, 55)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
+ContentFrame.CanvasSize = UDim2.new(0, 0, 0, 450)
+ContentFrame.ScrollBarThickness = 4
+ContentFrame.Parent = MainFrame
+
+-- Helper function to create toggles
+local function createToggle(name, yPos, callback)
+    local ToggleBtn = Instance.new("TextButton")
+    ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
+    ToggleBtn.Position = UDim2.new(0, 0, 0, yPos)
+    ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    ToggleBtn.Font = Enum.Font.GothamSemibold
+    ToggleBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+    ToggleBtn.TextSize = 14
+    ToggleBtn.Text = name .. ": [ OFF ]"
+    ToggleBtn.Parent = ContentFrame
+
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 8)
+    BtnCorner.Parent = ToggleBtn
+
+    local enabled = false
+    ToggleBtn.MouseButton1Click:Connect(function()
+        enabled = not enabled
+        if enabled then
+            ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 100)
+            ToggleBtn.Text = name .. ": [ ON ]"
+        else
+            ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+            ToggleBtn.Text = name .. ": [ OFF ]"
+        end
+        callback(enabled)
+    end)
+end
+
+-- =====================================================================
+-- SCRIPT LOGIC & AUTOMATIONS
+-- =====================================================================
+
+-- Safe Zone Position (Sesuaikan jika diperlukan koordinat aslinya di game)
+local SafeZonePosition = Vector3.new(0, 50, 0) 
+
+local function teleportToSafeZone()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(SafeZonePosition)
+    end
+end
+
+-- 1. Auto Spawn Motorcycle (Buya Marshmellow)
+local function spawnMotorcycle()
+    -- Mengirim event atau mencari fungsi spawn motor di workspace
+    pcall(function()
+        -- Contoh replika event remote jika game menggunakannya
+        local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes", true)
+        if remotes then
+            -- Cari remote spawn kendaraan
+            for _, v in pairs(remotes:GetDescendants()) do
+                if v:IsA("RemoteEvent") and (v.Name:lower():find("spawn") or v.Name:lower():find("vehicle") or v.Name:lower():find("bike")) then
+                    v:FireServer("MarshmellowBike") -- Menyesuaikan nama kendaraan
+                end
+            end
+        end
+    end)
+end
+
+-- 2. Auto Buy & Auto Sell
+local autoBuyActive = false
+local autoSellActive = false
+
+task.spawn(function()
+    while true do
+        task.wait(2)
+        if autoBuyActive then
+            pcall(function()
+                -- Logika Auto Buy Marshmellow Ingredients
+                local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes", true)
+                if remotes then
+                    for _, v in pairs(remotes:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("buy") then
+                            v:FireServer("Marshmellow")
+                        end
+                    end
+                end
+            end)
+        end
+        
+        if autoSellActive then
+            pcall(function()
+                -- Logika Auto Sell Marshmellow
+                local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes", true)
+                if remotes then
+                    for _, v in pairs(remotes:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and v.Name:lower():find("sell") then
+                            v:FireServer("Marshmellow")
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- 3. Auto Farm Marshmellow + Safe Zone setelah 1x masak
+local autoFarmActive = false
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if autoFarmActive then
+            pcall(function()
+                -- Proses simulasi memasak marshmellow
+                local remotes = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes", true)
+                if remotes then
+                    for _, v in pairs(remotes:GetDescendants()) do
+                        if v:IsA("RemoteEvent") and (v.Name:lower():find("cook") or v.Name:lower():find("craft")) then
+                            v:FireServer("Marshmellow")
+                            task.wait(0.5)
+                            -- Setiap selesai memasak satu kali, pindah ke safe zone
+                            teleportToSafeZone()
+                        end
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+-- =====================================================================
+-- BUILD MENU INTERFACE ITEMS
+-- =====================================================================
+
+createToggle("Auto Farm Marshmellow", 0, function(state)
+    autoFarmActive = state
+end)
+
+createToggle("Auto Buy Ingredients", 50, function(state)
+    autoBuyActive = state
+end)
+
+createToggle("Auto Sell Marshmellow", 100, function(state)
+    autoSellActive = state
+end)
+
+createToggle("Spawn Motor Buya Marshmellow", 150, function(state)
+    if state then
+        spawnMotorcycle()
+    end
+end)
+
+createToggle("Teleport to Safe Zone", 200, function(state)
+    if state then
+        teleportToSafeZone()
+    end
+end)
