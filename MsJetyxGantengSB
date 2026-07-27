@@ -1,0 +1,431 @@
+--[[ 
+    SOUTH BRONX TRENCHES SCRIPT
+    Fitur: Auto Farm Marshmellow, Auto Buy Cell, Auto Spawn Motor
+    Dengan Bypass Active untuk menghindari deteksi
+    Background: Biru Pelangi
+]]
+
+-- Variables
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SouthBronxTrenchesGUI"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Background Frame dengan efek biru pelangi
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 500, 0, 600)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -300)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+MainFrame.BackgroundTransparency = 0.85
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+-- Efek biru pelangi pada background
+local RainbowBackground = Instance.new("Frame")
+RainbowBackground.Size = UDim2.new(1, 0, 1, 0)
+RainbowBackground.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+RainbowBackground.BackgroundTransparency = 0.3
+RainbowBackground.Parent = MainFrame
+
+-- Gradient untuk efek pelangi biru
+local GradientEffect = Instance.new("UIGradient")
+GradientEffect.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 255)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(100, 150, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 255)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(50, 100, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 255))
+})
+GradientEffect.Rotation = 45
+GradientEffect.Parent = RainbowBackground
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Position = UDim2.new(0, 0, 0, 10)
+Title.BackgroundTransparency = 1
+Title.Text = "SOUTH BRONX TRENCHES"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+-- Subtitle
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, 0, 0, 30)
+SubTitle.Position = UDim2.new(0, 0, 0, 60)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "⚡ AUTO FARM MARSHMELLOW ⚡"
+SubTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+SubTitle.TextScaled = true
+SubTitle.Font = Enum.Font.GothamBold
+SubTitle.Parent = MainFrame
+
+-- Scrolling Frame untuk Menu
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Size = UDim2.new(0.9, 0, 0, 400)
+ScrollingFrame.Position = UDim2.new(0.05, 0, 0, 100)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.ScrollBarThickness = 8
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
+ScrollingFrame.Parent = MainFrame
+
+-- Fungsi untuk membuat tombol
+local function CreateButton(text, callback, yPos, color)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0.9, 0, 0, 45)
+    Button.Position = UDim2.new(0.05, 0, 0, yPos)
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextScaled = true
+    Button.Font = Enum.Font.GothamSemibold
+    Button.BackgroundColor3 = color or Color3.fromRGB(30, 144, 255)
+    Button.BorderSizePixel = 0
+    Button.Parent = ScrollingFrame
+    
+    -- Efek hover
+    Button.MouseEnter:Connect(function()
+        Button.BackgroundColor3 = Color3.fromRGB(70, 184, 255)
+        Button.Size = UDim2.new(0.92, 0, 0, 47)
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        Button.BackgroundColor3 = color or Color3.fromRGB(30, 144, 255)
+        Button.Size = UDim2.new(0.9, 0, 0, 45)
+    end)
+    
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
+
+-- Fungsi untuk membuat toggle
+local function CreateToggle(text, callback, yPos, defaultState)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(0.9, 0, 0, 40)
+    ToggleFrame.Position = UDim2.new(0.05, 0, 0, yPos)
+    ToggleFrame.BackgroundTransparency = 1
+    ToggleFrame.Parent = ScrollingFrame
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.TextScaled = true
+    Label.Font = Enum.Font.GothamSemibold
+    Label.Parent = ToggleFrame
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size = UDim2.new(0.2, 0, 0.8, 0)
+    ToggleButton.Position = UDim2.new(0.8, 0, 0.1, 0)
+    ToggleButton.BackgroundColor3 = defaultState and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    ToggleButton.Text = defaultState and "ON" or "OFF"
+    ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleButton.TextScaled = true
+    ToggleButton.Font = Enum.Font.GothamBold
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Parent = ToggleFrame
+    
+    local state = defaultState or false
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        state = not state
+        ToggleButton.BackgroundColor3 = state and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+        ToggleButton.Text = state and "ON" or "OFF"
+        callback(state)
+    end)
+    
+    return ToggleButton, ToggleFrame
+end
+
+-- Fungsi Bypass Active
+local function BypassActive()
+    local function antiKick()
+        for i, v in pairs(getconnections(LocalPlayer.PlayerGui.ChildAdded)) do
+            if v and v.Function then
+                v:Disable()
+            end
+        end
+    end
+    
+    -- Bypass untuk remote events
+    for _, v in pairs(ReplicatedStorage:GetChildren()) do
+        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+            if v.Name:match("Kick") or v.Name:match("Ban") or v.Name:match("Detection") then
+                v:Destroy()
+            end
+        end
+    end
+    
+    -- Anti kick dari server
+    LocalPlayer.PlayerGui.ChildAdded:Connect(function(child)
+        if child.Name:match("Kick") or child.Name:match("Ban") then
+            child:Destroy()
+        end
+    end)
+    
+    -- Bypass detection
+    local oldSend = game:GetService("ReplicatedStorage").Send
+    if oldSend then
+        oldSend:Destroy()
+    end
+    
+    antiKick()
+    print("✅ Bypass Active Berhasil!")
+end
+
+-- Auto Farm Marshmellow
+local farmRunning = false
+local farmCoroutine = nil
+
+local function AutoFarmMarshmellow(state)
+    farmRunning = state
+    
+    if farmCoroutine then
+        coroutine.close(farmCoroutine)
+        farmCoroutine = nil
+    end
+    
+    if state then
+        farmCoroutine = coroutine.create(function()
+            while farmRunning do
+                pcall(function()
+                    -- Cari marshmellow terdekat
+                    local nearestMarsh = nil
+                    local nearestDist = math.huge
+                    
+                    for _, v in pairs(Workspace:GetChildren()) do
+                        if v.Name:match("Marshmellow") or v.Name:match("Marshmallow") then
+                            if v:IsA("BasePart") or v:IsA("Model") then
+                                local pos = v:IsA("BasePart") and v.Position or v.PrimaryPart and v.PrimaryPart.Position
+                                if pos then
+                                    local dist = (pos - Character.HumanoidRootPart.Position).Magnitude
+                                    if dist < nearestDist then
+                                        nearestDist = dist
+                                        nearestMarsh = v
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    
+                    if nearestMarsh then
+                        -- Move to marshmellow
+                        Humanoid:MoveTo(nearestMarsh:IsA("BasePart") and nearestMarsh.Position or nearestMarsh.PrimaryPart.Position)
+                        
+                        -- Collect marshmellow
+                        if nearestMarsh:IsA("BasePart") and (nearestMarsh.Position - Character.HumanoidRootPart.Position).Magnitude < 5 then
+                            local fire = Instance.new("Fire")
+                            fire.Parent = nearestMarsh
+                            fire.Size = 5
+                            fire.Heat = 10
+                            
+                            wait(1)
+                            fire:Destroy()
+                            
+                            -- Pindah ke safe zone
+                            local safeZone = Workspace:FindFirstChild("SafeZone") or Workspace:FindFirstChild("Spawn")
+                            if safeZone then
+                                local pos = safeZone:IsA("BasePart") and safeZone.Position or safeZone.PrimaryPart.Position
+                                Humanoid:MoveTo(pos)
+                            end
+                        end
+                    end
+                end)
+                wait(0.5)
+            end
+        end)
+        coroutine.resume(farmCoroutine)
+    end
+end
+
+-- Auto Buy Cell dan Spawn Motor
+local function AutoBuyAndSpawn()
+    pcall(function()
+        -- Buy Cell
+        local shopGUI = LocalPlayer.PlayerGui:FindFirstChild("Shop")
+        if shopGUI then
+            local buyButton = shopGUI:FindFirstChild("BuyCell") or shopGUI:FindFirstChild("CellButton")
+            if buyButton then
+                buyButton:Fire()
+                print("✅ Auto Buy Cell Berhasil!")
+            end
+        end
+        
+        -- Spawn Motor
+        local spawnMotor = ReplicatedStorage:FindFirstChild("SpawnMotor") or ReplicatedStorage:FindFirstChild("MotorSpawn")
+        if spawnMotor then
+            if spawnMotor:IsA("RemoteEvent") then
+                spawnMotor:FireServer()
+            elseif spawnMotor:IsA("RemoteFunction") then
+                spawnMotor:InvokeServer()
+            end
+            print("✅ Auto Spawn Motor Berhasil!")
+        end
+        
+        -- Cari Buya Marshmellow
+        local buya = Workspace:FindFirstChild("Buya") or Workspace:FindFirstChild("MarshmellowBuya")
+        if buya then
+            local motor = Character:FindFirstChild("Motor") or Character:FindFirstChild("Vehicle")
+            if motor then
+                motor:Destroy()
+            end
+            
+            local newMotor = Instance.new("Model")
+            newMotor.Name = "MotorBuya"
+            newMotor.Parent = Character
+            
+            local motorPart = Instance.new("Part")
+            motorPart.Size = Vector3.new(5, 3, 10)
+            motorPart.Position = Character.HumanoidRootPart.Position + Vector3.new(0, 0, 5)
+            motorPart.Parent = newMotor
+            
+            local weld = Instance.new("Weld")
+            weld.Part0 = Character.HumanoidRootPart
+            weld.Part1 = motorPart
+            weld.C0 = CFrame.new(0, -1, -3)
+            weld.Parent = Character.HumanoidRootPart
+            
+            print("✅ Motor Buya Berhasil Di-Spawn!")
+        end
+    end)
+end
+
+-- Buat Menu
+local yPos = 10
+
+-- Tombol Auto Farm
+local farmToggle, farmFrame = CreateToggle("🌾 Auto Farm Marshmellow", function(state)
+    AutoFarmMarshmellow(state)
+end, yPos, false)
+yPos = yPos + 50
+
+-- Tombol Auto Buy Cell
+CreateButton("🏪 Auto Buy Cell", function()
+    local autoBuyRunning = true
+    while autoBuyRunning do
+        AutoBuyAndSpawn()
+        wait(5)
+    end
+end, yPos, Color3.fromRGB(255, 140, 0))
+yPos = yPos + 55
+
+-- Tombol Spawn Motor
+CreateButton("🏍️ Spawn Motor Buya", function()
+    AutoBuyAndSpawn()
+end, yPos, Color3.fromRGB(0, 200, 100))
+yPos = yPos + 55
+
+-- Tombol Safe Zone
+CreateButton("🛡️ Pindah ke Safe Zone", function()
+    local safeZone = Workspace:FindFirstChild("SafeZone") or Workspace:FindFirstChild("Spawn")
+    if safeZone then
+        local pos = safeZone:IsA("BasePart") and safeZone.Position or safeZone.PrimaryPart.Position
+        Humanoid:MoveTo(pos)
+        print("✅ Pindah ke Safe Zone!")
+    end
+end, yPos, Color3.fromRGB(0, 150, 255))
+yPos = yPos + 55
+
+-- Tombol Bypass Active
+CreateButton("🔓 Bypass Active", function()
+    BypassActive()
+end, yPos, Color3.fromRGB(255, 0, 0))
+yPos = yPos + 55
+
+-- Tombol Heal
+CreateButton("💚 Heal (Full Health)", function()
+    LocalPlayer.Character.Humanoid.Health = 100
+    print("✅ Health dipulihkan!")
+end, yPos, Color3.fromRGB(0, 255, 0))
+yPos = yPos + 55
+
+-- Tombol Close
+CreateButton("❌ Close", function()
+    ScreenGui:Destroy()
+end, yPos, Color3.fromRGB(255, 0, 0))
+
+-- Ubah size canvas sesuai kebutuhan
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, yPos + 60)
+
+-- Tombol Drag untuk move GUI
+local Drag = Instance.new("TextButton")
+Drag.Size = UDim2.new(1, 0, 0, 30)
+Drag.Position = UDim2.new(0, 0, 0, 0)
+Drag.BackgroundTransparency = 1
+Drag.Text = "☰ DRAG ME"
+Drag.TextColor3 = Color3.fromRGB(255, 255, 255)
+Drag.TextScaled = true
+Drag.Font = Enum.Font.GothamBold
+Drag.Parent = MainFrame
+
+local dragging = false
+local dragInput, dragStart, startPos
+
+Drag.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Drag.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end
+end)
+
+-- Auto eksekusi bypass saat script dijalankan
+wait(2)
+BypassActive()
+
+-- Notifikasi
+local notif = Instance.new("TextLabel")
+notif.Size = UDim2.new(0, 300, 0, 50)
+notif.Position = UDim2.new(0.5, -150, 1, -100)
+notif.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+notif.Text = "✅ Script South Bronx Trenches Aktif!"
+notif.TextColor3 = Color3.fromRGB(255, 255, 255)
+notif.TextScaled = true
+notif.Font = Enum.Font.GothamBold
+notif.BorderSizePixel = 0
+notif.Parent = ScreenGui
+
+-- Animasi notifikasi
+for i = 0, 1, 0.05 do
+    notif.Position = UDim2.new(0.5, -150, 1, -100 + (i * 50))
+    notif.BackgroundTransparency = 1 - i
+    wait(0.02)
+end
+
+wait(3)
+
+for i = 1, 0, -0.05 do
+    notif.Position = UDim2.new(0.5, -150, 1, -50 + ((1 - i) * 50))
+    notif.BackgroundTransparency = 1 - i
+    wait(0.02)
+end
+notif:Destroy()
+
+print("🚀 Script South Bronx Trenches Siap Digunakan!")
