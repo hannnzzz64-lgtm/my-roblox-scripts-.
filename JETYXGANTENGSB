@@ -1,0 +1,472 @@
+-- Script: South Bronx Trenches Marshmallow Auto Farm
+-- Tanpa Rayfield, menggunakan GUI Native Roblox
+-- Creator: [Nama Anda]
+
+-- Cek apakah game South Bronx
+if game.PlaceId ~= 10179538382 then
+    game:GetService("StarlightGui"):SetCore("SendNotification", {
+        Title = "Error",
+        Text = "Script hanya berfungsi di South Bronx: The Trenches!"
+    })
+    return
+end
+
+-- Variabel Global
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+
+-- Status Auto Farm
+local FarmRunning = false
+local FarmConnection = nil
+local BypassActive = false
+local BypassConnection = nil
+
+-- ======================== MEMBUAT UI NATIVE ========================
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SouthBronxUI"
+ScreenGui.Parent = Player.PlayerGui
+
+-- Frame Utama
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 30, 60)
+MainFrame.BackgroundTransparency = 0.1
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(100, 150, 255)
+MainFrame.Size = UDim2.new(0, 350, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Background Gradient (Biru Pelangi)
+local Gradient = Instance.new("UIGradient")
+Gradient.Parent = MainFrame
+Gradient.Rotation = 45
+Gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 255)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(0, 200, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 50, 255)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(0, 150, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 255))
+})
+
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(0, 50, 150)
+Title.BackgroundTransparency = 0.5
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.Text = "SOUTH BRONX SCRIPT"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Font = Enum.Font.GothamBold
+Title.TextStrokeColor3 = Color3.fromRGB(0, 50, 200)
+Title.TextStrokeTransparency = 0.3
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Parent = MainFrame
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -30, 0, 5)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Toggle Button untuk membuka/tutup (di pojok layar)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Parent = ScreenGui
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0, 10, 0, 10)
+ToggleBtn.Text = "SB"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.TextScaled = true
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.Visible = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+-- Scroll Frame untuk konten
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Parent = MainFrame
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ScrollFrame.BackgroundTransparency = 0.7
+ScrollFrame.Size = UDim2.new(1, -10, 1, -45)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 40)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+ScrollFrame.ScrollBarThickness = 6
+
+-- Layout untuk ScrollFrame
+local UILayout = Instance.new("UIListLayout")
+UILayout.Parent = ScrollFrame
+UILayout.SortOrder = Enum.SortOrder.LayoutOrder
+UILayout.Padding = UDim.new(0, 5)
+
+-- Fungsi untuk membuat Button
+local function CreateButton(parent, text, color, callback, order)
+    local btn = Instance.new("TextButton")
+    btn.Parent = parent
+    btn.BackgroundColor3 = color or Color3.fromRGB(0, 80, 200)
+    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Position = UDim2.new(0, 5, 0, 0)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.Gotham
+    btn.BorderSizePixel = 1
+    btn.BorderColor3 = Color3.fromRGB(100, 150, 255)
+    btn.MouseButton1Click:Connect(callback)
+    btn.LayoutOrder = order or 0
+    return btn
+end
+
+-- Fungsi untuk membuat Label
+local function CreateLabel(parent, text, order)
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = parent
+    lbl.BackgroundColor3 = Color3.fromRGB(0, 50, 100)
+    lbl.BackgroundTransparency = 0.3
+    lbl.Size = UDim2.new(1, -10, 0, 25)
+    lbl.Position = UDim2.new(0, 5, 0, 0)
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    lbl.TextScaled = true
+    lbl.Font = Enum.Font.GothamBold
+    lbl.LayoutOrder = order or 0
+    return lbl
+end
+
+-- Fungsi untuk membuat Toggle
+local function CreateToggle(parent, text, default, callback, order)
+    local frame = Instance.new("Frame")
+    frame.Parent = parent
+    frame.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+    frame.BackgroundTransparency = 0.3
+    frame.Size = UDim2.new(1, -10, 0, 35)
+    frame.Position = UDim2.new(0, 5, 0, 0)
+    frame.LayoutOrder = order or 0
+    
+    local label = Instance.new("TextLabel")
+    label.Parent = frame
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.Position = UDim2.new(0, 5, 0, 0)
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextScaled = true
+    label.Font = Enum.Font.Gotham
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.Parent = frame
+    toggleBtn.BackgroundColor3 = default and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+    toggleBtn.Size = UDim2.new(0, 50, 0, 25)
+    toggleBtn.Position = UDim2.new(1, -55, 0.5, -12.5)
+    toggleBtn.Text = default and "ON" or "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBtn.TextScaled = true
+    toggleBtn.Font = Enum.Font.GothamBold
+    
+    local state = default
+    toggleBtn.MouseButton1Click:Connect(function()
+        state = not state
+        toggleBtn.BackgroundColor3 = state and Color3.fromRGB(0, 200, 0) or Color3.fromRGB(200, 0, 0)
+        toggleBtn.Text = state and "ON" or "OFF"
+        callback(state)
+    end)
+    
+    return frame
+end
+
+-- ======================== FITUR-FITUR ========================
+
+-- Fungsi Spawn Motor
+local function SpawnMotor()
+    local args = {
+        [1] = "SpawnVehicle",
+        [2] = "Motor"
+    }
+    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("VehicleRemote")
+    if remote then
+        remote:FireServer(unpack(args))
+        game:GetService("StarlightGui"):SetCore("SendNotification", {
+            Title = "Motor",
+            Text = "Motor berhasil di-spawn!"
+        })
+    else
+        -- Coba cari remote lain
+        for _, obj in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+            if obj:IsA("RemoteEvent") and obj.Name:find("Vehicle") then
+                obj:FireServer("SpawnVehicle", "Motor")
+                break
+            end
+        end
+    end
+end
+
+-- Fungsi Anti AFK / Bypass
+local function StartBypass()
+    BypassActive = true
+    if BypassConnection then BypassConnection:Disconnect() end
+    
+    BypassConnection = RunService.Heartbeat:Connect(function()
+        if not BypassActive then 
+            BypassConnection:Disconnect()
+            return 
+        end
+        -- Simulasi gerakan
+        local VirtualUser = game:GetService("VirtualUser")
+        if VirtualUser then
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+        end
+        -- Kirim input kosong
+        if Character and Character:FindFirstChild("Humanoid") then
+            Character.Humanoid.MoveDirection = Vector3.new(0, 0, 1)
+            wait(0.1)
+            Character.Humanoid.MoveDirection = Vector3.new(0, 0, 0)
+        end
+    end)
+end
+
+-- Fungsi Auto Sell
+local function AutoSell()
+    local inventory = Player:FindFirstChild("Inventory")
+    if inventory then
+        for _, item in pairs(inventory:GetChildren()) do
+            if item:IsA("Tool") and (item.Name:find("Marshmallow") or item.Name:find("Cooked")) then
+                local sellRemote = game:GetService("ReplicatedStorage"):FindFirstChild("SellItem")
+                if sellRemote then
+                    sellRemote:FireServer(item)
+                    wait(0.5)
+                else
+                    -- Coba cari remote sell lain
+                    for _, obj in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+                        if obj:IsA("RemoteEvent") and obj.Name:find("Sell") then
+                            obj:FireServer(item)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Fungsi Auto Buy Marshmallow
+local function AutoBuy()
+    local shopRemote = game:GetService("ReplicatedStorage"):FindFirstChild("ShopRemote")
+    if shopRemote then
+        shopRemote:FireServer("Marshmallow", 1)
+    else
+        -- Coba cari remote shop lain
+        for _, obj in pairs(game:GetService("ReplicatedStorage"):GetChildren()) do
+            if obj:IsA("RemoteEvent") and (obj.Name:find("Shop") or obj.Name:find("Buy")) then
+                obj:FireServer("Marshmallow", 1)
+                break
+            end
+        end
+    end
+end
+
+-- Fungsi Auto Farm utama
+local function StartFarming()
+    if FarmRunning then return end
+    FarmRunning = true
+    
+    -- Aktifkan bypass otomatis
+    if not BypassActive then
+        StartBypass()
+    end
+    
+    FarmConnection = RunService.Heartbeat:Connect(function()
+        if not FarmRunning then
+            FarmConnection:Disconnect()
+            return
+        end
+        
+        -- Cari Safe Zone
+        local SafeZone = Workspace:FindFirstChild("SafeZone") or Workspace:FindFirstChild("SafeZone_Trenches")
+        if SafeZone then
+            -- Cari cooking station
+            local cookingStations = SafeZone:FindFirstChild("CookingStations")
+            if cookingStations then
+                local nearestStation = nil
+                local shortestDist = math.huge
+                for _, station in pairs(cookingStations:GetChildren()) do
+                    if station:IsA("Model") and station:FindFirstChild("ProximityPrompt") then
+                        local stationPart = station:FindFirstChild("Part") or station:FindFirstChild("Handle") or station.PrimaryPart
+                        if stationPart then
+                            local dist = (Character.HumanoidRootPart.Position - stationPart.Position).Magnitude
+                            if dist < shortestDist then
+                                shortestDist = dist
+                                nearestStation = station
+                            end
+                        end
+                    end
+                end
+                
+                if nearestStation then
+                    local stationPart = nearestStation:FindFirstChild("Part") or nearestStation:FindFirstChild("Handle") or nearestStation.PrimaryPart
+                    if stationPart then
+                        -- Teleport ke station
+                        Character.HumanoidRootPart.CFrame = stationPart.CFrame + Vector3.new(0, 2, 0)
+                        wait(1)
+                        
+                        -- Interact
+                        local prompt = nearestStation:FindFirstChild("ProximityPrompt")
+                        if prompt then
+                            prompt:InputHoldBegin(Character)
+                            wait(2)
+                            prompt:InputHoldEnd(Character)
+                            
+                            -- Tunggu masak
+                            wait(4)
+                            
+                            -- Auto sell & buy
+                            AutoSell()
+                            AutoBuy()
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- Fungsi Stop Farming
+local function StopFarming()
+    FarmRunning = false
+    if FarmConnection then
+        FarmConnection:Disconnect()
+        FarmConnection = nil
+    end
+end
+
+-- ======================== MEMBUAT UI ELEMEN ========================
+
+-- Section 1: Auto Farm
+CreateLabel(ScrollFrame, "=== AUTO FARM MARSHMALLOW ===", 0)
+
+CreateButton(ScrollFrame, "🔥 START AUTO FARM", Color3.fromRGB(0, 150, 50), function()
+    StartFarming()
+    game:GetService("StarlightGui"):SetCore("SendNotification", {
+        Title = "Auto Farm",
+        Text = "Auto Farm dimulai!"
+    })
+end, 1)
+
+CreateButton(ScrollFrame, "⏹️ STOP AUTO FARM", Color3.fromRGB(200, 50, 50), function()
+    StopFarming()
+    game:GetService("StarlightGui"):SetCore("SendNotification", {
+        Title = "Auto Farm",
+        Text = "Auto Farm dihentikan!"
+    })
+end, 2)
+
+-- Section 2: Bypass
+CreateLabel(ScrollFrame, "=== BYPASS & ANTIDETECT ===", 3)
+
+CreateToggle(ScrollFrame, "🛡️ Bypass Active", false, function(state)
+    if state then
+        StartBypass()
+        game:GetService("StarlightGui"):SetCore("SendNotification", {
+            Title = "Bypass",
+            Text = "Bypass Active diaktifkan!"
+        })
+    else
+        BypassActive = false
+        if BypassConnection then
+            BypassConnection:Disconnect()
+            BypassConnection = nil
+        end
+        game:GetService("StarlightGui"):SetCore("SendNotification", {
+            Title = "Bypass",
+            Text = "Bypass dinonaktifkan!"
+        })
+    end
+end, 4)
+
+-- Section 3: Vehicle
+CreateLabel(ScrollFrame, "=== VEHICLE ===", 5)
+
+CreateButton(ScrollFrame, "🏍️ SPAWN MOTOR", Color3.fromRGB(200, 150, 0), function()
+    SpawnMotor()
+end, 6)
+
+-- Section 4: Shop
+CreateLabel(ScrollFrame, "=== SHOP ===", 7)
+
+CreateButton(ScrollFrame, "💰 AUTO SELL ALL", Color3.fromRGB(0, 150, 200), function()
+    AutoSell()
+    game:GetService("StarlightGui"):SetCore("SendNotification", {
+        Title = "Auto Sell",
+        Text = "Menjual semua item..."
+    })
+end, 8)
+
+CreateButton(ScrollFrame, "🛒 BUY MARSHMALLOW", Color3.fromRGB(150, 0, 200), function()
+    AutoBuy()
+    game:GetService("StarlightGui"):SetCore("SendNotification", {
+        Title = "Buy",
+        Text = "Membeli Marshmallow..."
+    })
+end, 9)
+
+-- Section 5: Status
+CreateLabel(ScrollFrame, "=== STATUS ===", 10)
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Parent = ScrollFrame
+StatusLabel.BackgroundColor3 = Color3.fromRGB(0, 30, 60)
+StatusLabel.BackgroundTransparency = 0.3
+StatusLabel.Size = UDim2.new(1, -10, 0, 30)
+StatusLabel.Position = UDim2.new(0, 5, 0, 0)
+StatusLabel.Text = "Status: Siap"
+StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+StatusLabel.TextScaled = true
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.LayoutOrder = 11
+
+-- Update status setiap detik
+spawn(function()
+    while wait(1) do
+        if FarmRunning then
+            StatusLabel.Text = "Status: 🟢 Farming Active"
+            StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        elseif BypassActive then
+            StatusLabel.Text = "Status: 🟡 Bypass Only"
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+        else
+            StatusLabel.Text = "Status: 🔴 Idle"
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    end
+end)
+
+-- Fix scrolling canvas
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UILayout.AbsoluteContentSize.Y + 20)
+
+-- Notifikasi awal
+game:GetService("StarlightGui"):SetCore("SendNotification", {
+    Title = "South Bronx Script",
+    Text = "Skrip berhasil dimuat! Klik tombol SB di pojok kiri atas untuk menu."
+})
