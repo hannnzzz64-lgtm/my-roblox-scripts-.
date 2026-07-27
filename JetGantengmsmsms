@@ -1,0 +1,320 @@
+--[[
+    SCRIPT: South Bronx Trenches - Auto Farm Marshmallow
+    Creator: JetGanteng
+    Fitur:
+    - Background Biru Pelangi (besar)
+    - Menu GUI dengan tombol MAIN
+    - Auto Farm Marshmallow (otomatis masak & beli)
+    - Bypass Active (anti detect & kick)
+    - Auto Spawn Motor
+    - Safe Zone untuk memasak
+--]]
+
+-- ========== KONFIGURASI ==========
+local Player = game.Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- ========== BYPASS ACTIVE (Anti Detect/Kick) ==========
+local function BypassActive()
+    -- Fake latency & spoof
+    local oldNamecall = nil
+    local mt = getrawmetatable and getrawmetatable(game) or debug.getmetatable(game)
+    if mt then
+        oldNamecall = mt.__namecall
+        setreadonly(mt, false)
+        mt.__namecall = newcclosure(function(self, ...)
+            local args = {...}
+            local method = getnamecallmethod()
+            if method == "Kick" or method == "Ban" or method == "Teleport" then
+                return
+            end
+            if oldNamecall then
+                return oldNamecall(self, ...)
+            end
+        end)
+        setreadonly(mt, true)
+    end
+
+    -- Bypass server checks
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+            if v.Name:lower():find("kick") or v.Name:lower():find("ban") or v.Name:lower():find("detect") then
+                v:Destroy()
+            end
+        end
+    end
+    
+    -- Fake ping
+    game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:SetValue(30)
+    game:GetService("Stats").Network.ServerStatsItem["Latency"]:SetValue(50)
+    
+    print("[JetGanteng] Bypass Active Berhasil!")
+end
+
+-- ========== BACKGROUND BIRU PELANGI (Besar) ==========
+local function CreateBackground()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "JetGantengGUI"
+    screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+    
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(2, 0, 2, 0) -- Ukuran besar
+    bg.Position = UDim2.new(-0.5, 0, -0.5, 0)
+    bg.BackgroundColor3 = Color3.fromRGB(0, 50, 150)
+    bg.BackgroundTransparency = 0.7
+    bg.Parent = screenGui
+    
+    -- Efek pelangi bergerak
+    local rainbow = Instance.new("Frame")
+    rainbow.Size = UDim2.new(2.5, 0, 2.5, 0)
+    rainbow.Position = UDim2.new(-0.75, 0, -0.75, 0)
+    rainbow.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    rainbow.BackgroundTransparency = 0.5
+    rainbow.Parent = screenGui
+    
+    -- Animasi pelangi
+    spawn(function()
+        local colors = {
+            Color3.fromRGB(255, 0, 0),
+            Color3.fromRGB(255, 165, 0),
+            Color3.fromRGB(255, 255, 0),
+            Color3.fromRGB(0, 255, 0),
+            Color3.fromRGB(0, 0, 255),
+            Color3.fromRGB(75, 0, 130),
+            Color3.fromRGB(238, 130, 238)
+        }
+        local index = 1
+        while wait(0.1) do
+            rainbow.BackgroundColor3 = colors[index]
+            rainbow.Rotation = (rainbow.Rotation or 0) + 1
+            index = index % #colors + 1
+        end
+    end)
+    
+    return screenGui
+end
+
+-- ========== MENU UTAMA ==========
+local function CreateMenu()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "JetMenu"
+    gui.Parent = game.Players.LocalPlayer.PlayerGui
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 400, 0, 500)
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 2
+    mainFrame.BorderColor3 = Color3.fromRGB(0, 150, 255)
+    mainFrame.Parent = gui
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 50)
+    title.Position = UDim2.new(0, 0, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "🔥 JETGANTENG - SOUTH BRONX 🔥"
+    title.TextColor3 = Color3.fromRGB(100, 200, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.Parent = mainFrame
+    
+    -- ========== TOMBOL MAIN ==========
+    local mainBtn = Instance.new("TextButton")
+    mainBtn.Size = UDim2.new(0, 200, 0, 60)
+    mainBtn.Position = UDim2.new(0.5, -100, 0, 100)
+    mainBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+    mainBtn.Text = "🎮 MAIN"
+    mainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    mainBtn.TextScaled = true
+    mainBtn.Font = Enum.Font.GothamBold
+    mainBtn.Parent = mainFrame
+    
+    -- ========== AUTO FARM MARSHMALLOW ==========
+    local autoFarmBtn = Instance.new("TextButton")
+    autoFarmBtn.Size = UDim2.new(0, 200, 0, 50)
+    autoFarmBtn.Position = UDim2.new(0.5, -100, 0, 180)
+    autoFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 100)
+    autoFarmBtn.Text = "🍬 AUTO FARM MARSHMALLOW"
+    autoFarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    autoFarmBtn.TextScaled = true
+    autoFarmBtn.Font = Enum.Font.Gotham
+    autoFarmBtn.Parent = mainFrame
+    
+    -- ========== AUTO BELI MARSHMALLOW ==========
+    local autoBuyBtn = Instance.new("TextButton")
+    autoBuyBtn.Size = UDim2.new(0, 200, 0, 50)
+    autoBuyBtn.Position = UDim2.new(0.5, -100, 0, 250)
+    autoBuyBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
+    autoBuyBtn.Text = "🛒 AUTO BUY MARSHMALLOW"
+    autoBuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    autoBuyBtn.TextScaled = true
+    autoBuyBtn.Font = Enum.Font.Gotham
+    autoBuyBtn.Parent = mainFrame
+    
+    -- ========== AUTO SPAWN MOTOR ==========
+    local motorBtn = Instance.new("TextButton")
+    motorBtn.Size = UDim2.new(0, 200, 0, 50)
+    motorBtn.Position = UDim2.new(0.5, -100, 0, 320)
+    motorBtn.BackgroundColor3 = Color3.fromRGB(255, 150, 0)
+    motorBtn.Text = "🏍️ SPAWN MOTOR"
+    motorBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    motorBtn.TextScaled = true
+    motorBtn.Font = Enum.Font.Gotham
+    motorBtn.Parent = mainFrame
+    
+    -- Status Label
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(1, 0, 0, 40)
+    status.Position = UDim2.new(0, 0, 0, 450)
+    status.BackgroundTransparency = 1
+    status.Text = "Status: Siap!"
+    status.TextColor3 = Color3.fromRGB(0, 255, 100)
+    status.TextScaled = true
+    status.Font = Enum.Font.Gotham
+    status.Parent = mainFrame
+    
+    -- ========== FUNGSI AUTO FARM ==========
+    local isFarming = false
+    local isBuying = false
+    
+    -- Bypass aktif sebelum farming
+    BypassActive()
+    
+    -- Fungsi cari marshmallow terdekat
+    local function FindNearestMarshmallow()
+        local nearest = nil
+        local minDist = math.huge
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v:IsA("Model") and v.Name:lower():find("marshmallow") then
+                local dist = (RootPart.Position - v.PrimaryPart.Position).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    nearest = v
+                end
+            end
+        end
+        return nearest
+    end
+    
+    -- Fungsi masak marshmallow di safe zone
+    local function CookMarshmallow(marshmallow)
+        if not marshmallow then return end
+        local grill = game.Workspace:FindFirstChild("Grill") or game.Workspace:FindFirstChild("SafeZone")
+        if grill and grill.PrimaryPart then
+            RootPart.CFrame = grill.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            wait(1)
+            -- Simulasi memasak
+            local cookEvent = game:GetService("ReplicatedStorage"):FindFirstChild("CookEvent")
+            if cookEvent then
+                cookEvent:FireServer(marshmallow)
+            end
+            status.Text = "🍳 Memasak Marshmallow..."
+            wait(3)
+            status.Text = "✅ Selesai masak!"
+        end
+    end
+    
+    -- Auto Farm Loop
+    autoFarmBtn.MouseButton1Click:Connect(function()
+        isFarming = not isFarming
+        autoFarmBtn.Text = isFarming and "⏹️ STOP FARM" or "🍬 AUTO FARM MARSHMALLOW"
+        autoFarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 150, 100)
+        status.Text = isFarming and "🔄 Farming aktif..." or "⏹️ Farming dihentikan"
+        
+        if isFarming then
+            spawn(function()
+                while isFarming do
+                    local marsh = FindNearestMarshmallow()
+                    if marsh then
+                        CookMarshmallow(marsh)
+                    else
+                        status.Text = "🔍 Mencari marshmallow..."
+                        wait(1)
+                    end
+                    wait(0.5)
+                end
+            end)
+        end
+    end)
+    
+    -- Auto Buy
+    autoBuyBtn.MouseButton1Click:Connect(function()
+        isBuying = not isBuying
+        autoBuyBtn.Text = isBuying and "⏹️ STOP BUY" or "🛒 AUTO BUY MARSHMALLOW"
+        autoBuyBtn.BackgroundColor3 = isBuying and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(150, 0, 200)
+        
+        if isBuying then
+            spawn(function()
+                while isBuying do
+                    local buyEvent = game:GetService("ReplicatedStorage"):FindFirstChild("BuyMarshmallow")
+                    if buyEvent then
+                        buyEvent:FireServer()
+                        status.Text = "💰 Membeli marshmallow..."
+                        wait(2)
+                    end
+                    wait(1)
+                end
+            end)
+        end
+    end)
+    
+    -- Spawn Motor
+    motorBtn.MouseButton1Click:Connect(function()
+        local motorEvent = game:GetService("ReplicatedStorage"):FindFirstChild("SpawnVehicle")
+        if motorEvent then
+            motorEvent:FireServer("Motorcycle")
+            status.Text = "🏍️ Motor berhasil di-spawn!"
+        else
+            -- Spawn manual
+            local vehicle = Instance.new("Model")
+            vehicle.Name = "JetMotor"
+            -- Tambahkan part sederhana
+            local part = Instance.new("Part")
+            part.Size = Vector3.new(3, 1, 5)
+            part.Position = RootPart.Position + Vector3.new(0, 2, 5)
+            part.Anchored = true
+            part.Parent = vehicle
+            vehicle.Parent = game.Workspace
+            status.Text = "🏍️ Motor custom telah muncul!"
+        end
+    end)
+    
+    -- Tombol Main
+    mainBtn.MouseButton1Click:Connect(function()
+        status.Text = "🎮 Mode MAIN diaktifkan!"
+        -- Teleport ke safe zone
+        local safeZone = game.Workspace:FindFirstChild("SafeZone")
+        if safeZone and safeZone.PrimaryPart then
+            RootPart.CFrame = safeZone.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            status.Text = "📍 Teleport ke Safe Zone!"
+        end
+    end)
+    
+    return gui
+end
+
+-- ========== EKSEKUSI ==========
+-- Jalankan bypass terlebih dahulu
+BypassActive()
+
+-- Buat background
+local bg = CreateBackground()
+
+-- Buat menu utama
+local menu = CreateMenu()
+
+-- Informasi siap
+print("[JetGanteng] Script South Bronx Trenches siap digunakan!")
+print("[JetGanteng] Fitur: Auto Farm Marshmallow, Auto Buy, Spawn Motor, Bypass Active")
+print("[JetGanteng] Selamat bermain! - JetGanteng")
+
+-- Notifikasi di game
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "JetGanteng Script",
+    Text = "Script South Bronx Trenches siap!",
+    Duration = 5
+})
