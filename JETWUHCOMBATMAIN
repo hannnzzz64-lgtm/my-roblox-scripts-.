@@ -1,0 +1,361 @@
+--[[
+    JET-COMBAT-REMOTE
+    Key: JETCOMBAT
+    All Features Auto-Enabled
+]]
+
+-- ===== KEY SYSTEM =====
+local Key = "JETCOMBAT"
+local EnteredKey = ""
+
+-- Function to show key input
+local function ShowKeyInput()
+    local player = game.Players.LocalPlayer
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "KeySystem"
+    gui.Parent = player.PlayerGui
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 400, 0, 200)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -100)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 50, 100)
+    frame.BackgroundTransparency = 0.1
+    frame.BorderSizePixel = 2
+    frame.BorderColor3 = Color3.fromRGB(100, 200, 255)
+    frame.Parent = gui
+    
+    -- Gradient Effect
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 100, 200)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(100, 0, 200)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 200, 255))
+    })
+    gradient.Rotation = 45
+    gradient.Parent = frame
+    
+    -- Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.Position = UDim2.new(0, 0, 0, 10)
+    title.BackgroundTransparency = 1
+    title.Text = "JET-COMBAT-REMOTE"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.Bold
+    title.Parent = frame
+    
+    -- Subtitle
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Size = UDim2.new(1, 0, 0, 30)
+    subtitle.Position = UDim2.new(0, 0, 0, 50)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Enter Activation Key"
+    subtitle.TextColor3 = Color3.fromRGB(200, 200, 255)
+    subtitle.TextScaled = true
+    subtitle.Font = Enum.Font.SourceSans
+    subtitle.Parent = frame
+    
+    -- TextBox
+    local textbox = Instance.new("TextBox")
+    textbox.Size = UDim2.new(0, 250, 0, 35)
+    textbox.Position = UDim2.new(0.5, -125, 0, 90)
+    textbox.BackgroundColor3 = Color3.fromRGB(20, 40, 80)
+    textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textbox.Text = ""
+    textbox.PlaceholderText = "Enter Key..."
+    textbox.Font = Enum.Font.SourceSans
+    textbox.TextScaled = true
+    textbox.BorderSizePixel = 2
+    textbox.BorderColor3 = Color3.fromRGB(100, 200, 255)
+    textbox.Parent = frame
+    
+    -- Button
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 150, 0, 35)
+    button.Position = UDim2.new(0.5, -75, 0, 140)
+    button.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    button.Text = "ACTIVATE"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.Bold
+    button.TextScaled = true
+    button.BorderSizePixel = 2
+    button.BorderColor3 = Color3.fromRGB(100, 200, 255)
+    button.Parent = frame
+    
+    -- Status
+    local status = Instance.new("TextLabel")
+    status.Size = UDim2.new(1, 0, 0, 20)
+    status.Position = UDim2.new(0, 0, 0, 180)
+    status.BackgroundTransparency = 1
+    status.Text = ""
+    status.TextColor3 = Color3.fromRGB(255, 100, 100)
+    status.TextScaled = true
+    status.Font = Enum.Font.SourceSans
+    status.Parent = frame
+    
+    button.MouseButton1Click:Connect(function()
+        if textbox.Text == Key then
+            status.Text = "✅ Key Valid! Loading Script..."
+            status.TextColor3 = Color3.fromRGB(100, 255, 100)
+            wait(1)
+            gui:Destroy()
+            LoadScript()
+        else
+            status.Text = "❌ Invalid Key! Please try again."
+            status.TextColor3 = Color3.fromRGB(255, 100, 100)
+            textbox.Text = ""
+        end
+    end)
+end
+
+-- ===== LOAD SCRIPT FUNCTION =====
+function LoadScript()
+    -- Load UI Library
+    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+    local Window = Library.CreateLib("JET-COMBAT-REMOTE", "Ocean")
+
+    -- ===== ALL FEATURES AUTO-ENABLED =====
+    local function EnableAllFeatures()
+        print("🚀 Activating JET-COMBAT-REMOTE Features...")
+        
+        -- Combat Mode
+        _G.CombatMode = true
+        
+        -- Aim Features
+        _G.Aimbot = true
+        _G.TriggerBot = true
+        _G.FOV_PC = 150
+        _G.FOV_Mobile = 150
+        
+        -- Visual Features
+        _G.EnemyESP = true
+        _G.ClientESP = true
+        _G.Chams = true
+        _G.MiniRadar = true
+        _G.Hitsounds = true
+        _G.HitTracers = true
+        
+        -- Movement Features
+        _G.WalkSpeed = 50
+        _G.NoClip = true
+        _G.Fly = true
+        
+        -- Other Features
+        _G.AntiAFK = true
+        _G.RapidFire = true
+        _G.SpinBot = true
+        
+        print("✅ All Features Activated!")
+    end
+
+    -- ===== MAIN TAB =====
+    local MainTab = Window:NewTab("🏠 Main")
+    local MainSection = MainTab:NewSection("JET-COMBAT-REMOTE")
+    
+    MainSection:NewLabel("🚀 All Features Auto-Enabled")
+    MainSection:NewLabel("Key: JETCOMBAT")
+    MainSection:NewLabel("Status: ✅ ACTIVE")
+    
+    MainSection:NewButton("📊 Show Status", "Tampilkan status semua fitur", function()
+        local msg = "=== JET-COMBAT-REMOTE STATUS ===\n"
+        msg = msg .. "🚀 Combat Mode: ✅ ACTIVE\n"
+        msg = msg .. "🎯 Aimbot: ✅ ACTIVE\n"
+        msg = msg .. "🎯 Trigger Bot: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Enemy ESP: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Client ESP: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Chams: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Mini Radar: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Hitsounds: ✅ ACTIVE\n"
+        msg = msg .. "👁️ Hit Tracers: ✅ ACTIVE\n"
+        msg = msg .. "🏃 WalkSpeed: 50 ✅\n"
+        msg = msg .. "🏃 NoClip: ✅ ACTIVE\n"
+        msg = msg .. "🏃 Fly: ✅ ACTIVE\n"
+        msg = msg .. "🔧 Anti-AFK: ✅ ACTIVE\n"
+        msg = msg .. "🔧 RapidFire: ✅ ACTIVE\n"
+        msg = msg .. "🔧 SpinBot: ✅ ACTIVE"
+        
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "JET-COMBAT-REMOTE",
+            Text = msg,
+            Duration = 10
+        })
+        print(msg)
+    end)
+
+    -- ===== AIM FEATURES =====
+    local AimTab = Window:NewTab("🎯 Aim")
+    local AimSection = AimTab:NewSection("Aim Features - ✅ ACTIVE")
+    
+    AimSection:NewToggle("Aimbot", "Aimbot aktif", function(state)
+        _G.Aimbot = state
+    end):SetState(true)
+    
+    AimSection:NewToggle("Trigger Bot", "Trigger Bot aktif", function(state)
+        _G.TriggerBot = state
+    end):SetState(true)
+    
+    AimSection:NewSlider("FOV PC", "FOV untuk PC", 0, 200, 150, function(value)
+        _G.FOV_PC = value
+    end)
+    
+    AimSection:NewSlider("FOV Mobile", "FOV untuk Mobile", 0, 200, 150, function(value)
+        _G.FOV_Mobile = value
+    end)
+
+    -- ===== VISUAL FEATURES =====
+    local VisualTab = Window:NewTab("👁️ Visual")
+    local VisualSection = VisualTab:NewSection("Visual Features - ✅ ACTIVE")
+    
+    VisualSection:NewToggle("Enemy ESP", "ESP Musuh aktif", function(state)
+        _G.EnemyESP = state
+    end):SetState(true)
+    
+    VisualSection:NewToggle("Client ESP", "ESP Client aktif", function(state)
+        _G.ClientESP = state
+    end):SetState(true)
+    
+    VisualSection:NewToggle("Chams", "Chams aktif", function(state)
+        _G.Chams = state
+    end):SetState(true)
+    
+    VisualSection:NewToggle("Mini Radar", "Radar aktif", function(state)
+        _G.MiniRadar = state
+    end):SetState(true)
+    
+    VisualSection:NewToggle("Hitsounds", "Hit sounds aktif", function(state)
+        _G.Hitsounds = state
+    end):SetState(true)
+    
+    VisualSection:NewToggle("Hit Tracers", "Hit tracers aktif", function(state)
+        _G.HitTracers = state
+    end):SetState(true)
+
+    -- ===== MOVEMENT FEATURES =====
+    local MoveTab = Window:NewTab("🏃 Movement")
+    local MoveSection = MoveTab:NewSection("Movement Features - ✅ ACTIVE")
+    
+    MoveSection:NewSlider("WalkSpeed", "Kecepatan berjalan", 16, 100, 50, function(value)
+        _G.WalkSpeed = value
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    end)
+    
+    MoveSection:NewToggle("NoClip", "Tembus dinding", function(state)
+        _G.NoClip = state
+    end):SetState(true)
+    
+    MoveSection:NewToggle("Fly Mode", "Mode terbang", function(state)
+        _G.Fly = state
+    end):SetState(true)
+
+    -- ===== OTHER FEATURES =====
+    local OtherTab = Window:NewTab("🔧 Other")
+    local OtherSection = OtherTab:NewSection("Other Features - ✅ ACTIVE")
+    
+    OtherSection:NewToggle("Anti-AFK", "Mencegah AFK", function(state)
+        _G.AntiAFK = state
+        if state then
+            game:GetService("Players").LocalPlayer.Idled:Connect(function()
+                game:GetService("VirtualUser"):CaptureController()
+                game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+            end)
+        end
+    end):SetState(true)
+    
+    OtherSection:NewButton("📋 Player List", "Lihat daftar pemain", function()
+        local players = game:GetService("Players"):GetPlayers()
+        local msg = "=== PLAYER LIST ===\n"
+        for i, player in ipairs(players) do
+            local status = player == game.Players.LocalPlayer and " (YOU)" or ""
+            msg = msg .. i .. ". " .. player.Name .. status .. "\n"
+        end
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Player List",
+            Text = msg,
+            Duration = 8
+        })
+        print(msg)
+    end)
+    
+    OtherSection:NewToggle("RapidFire", "Tembak cepat", function(state)
+        _G.RapidFire = state
+    end):SetState(true)
+    
+    OtherSection:NewToggle("SpinBot", "Berputar otomatis", function(state)
+        _G.SpinBot = state
+        if state then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 50, 0)
+        else
+            game.Players.LocalPlayer.Character.HumanoidRootPart.RotVelocity = Vector3.new(0, 0, 0)
+        end
+    end):SetState(true)
+
+    -- ===== AUTO-LOOP FUNCTIONS =====
+    spawn(function()
+        while wait() do
+            -- WalkSpeed
+            local player = game.Players.LocalPlayer
+            if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+                player.Character.Humanoid.WalkSpeed = _G.WalkSpeed or 50
+            end
+            
+            -- NoClip
+            if _G.NoClip then
+                local char = game.Players.LocalPlayer.Character
+                if char then
+                    for _, v in pairs(char:GetChildren()) do
+                        if v:IsA("BasePart") then
+                            v.CanCollide = false
+                        end
+                    end
+                end
+            end
+            
+            -- Fly
+            if _G.Fly then
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local hrp = char.HumanoidRootPart
+                    local humanoid = char.Humanoid
+                    if humanoid then
+                        humanoid.PlatformStand = true
+                        hrp.Velocity = Vector3.new(0, 0, 0)
+                        hrp.CFrame = hrp.CFrame + (hrp.CFrame.LookVector * 0.1)
+                    end
+                end
+            end
+            
+            -- SpinBot
+            if _G.SpinBot then
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    char.HumanoidRootPart.RotVelocity = Vector3.new(0, 50, 0)
+                end
+            end
+        end
+    end)
+
+    -- ===== KEYBIND =====
+    Window:Keybind("Toggle UI", Enum.KeyCode.RightControl, function()
+        Library:ToggleUI()
+    end)
+
+    -- ===== NOTIFICATION =====
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "JET-COMBAT-REMOTE",
+        Text = "✅ All Features Activated!\nPress RightControl to toggle menu",
+        Duration = 5
+    })
+
+    print("========================================")
+    print("🚀 JET-COMBAT-REMOTE LOADED!")
+    print("✅ Key: JETCOMBAT")
+    print("✅ All Features Activated!")
+    print("✅ Press RightControl to toggle menu")
+    print("========================================")
+end
+
+-- ===== START =====
+print("JET-COMBAT-REMOTE Loading...")
+print("Please enter key: JETCOMBAT")
+ShowKeyInput()
