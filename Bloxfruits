@@ -1,0 +1,604 @@
+--[[
+    Script: HanzHub V3
+    Game: Blox Fruits
+    Fitur: Auto Farming, Auto Sea Beast, ESP Player/Mobs, Auto Heal
+    Tema: Hijau Tua
+    Style: Custom GUI (Seperti skrip GitHub)
+]]
+
+-- ====== VARIABEL GLOBAL ======
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
+local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local Camera = Workspace.CurrentCamera
+
+-- ====== SETTINGS ======
+local Settings = {
+    AutoFarm = false,
+    FarmMode = "Quest", -- "Quest", "Boss", "Level"
+    QuestLevel = "Jungle",
+    AttackDistance = 50,
+    AutoHeal = true,
+    HealThreshold = 30,
+    AutoSeaBeast = false,
+    ESPEnabled = false,
+    ESPPlayers = true,
+    ESPMobs = true,
+    ESPColor = Color3.fromRGB(0, 255, 0),
+    TeleportTarget = nil
+}
+
+-- ====== ESP SYSTEM ======
+local ESPObjects = {}
+local ESPLines = {}
+
+local function CreateESP(object, color, text)
+    -- Box ESP
+    local box = Instance.new("BoxHandleAdornment")
+    box.Size = Vector3.new(4, 5, 4)
+    box.AlwaysOnTop = true
+    box.ZIndex = 10
+    box.Color3 = color or Settings.ESPColor
+    box.Transparency = 0.5
+    box.Parent = object
+    ESPObjects[object] = box
+    
+    -- Garis dari player ke target
+    local line = Instance.new("LineHandleAdornment")
+    line.AlwaysOnTop = true
+    line.ZIndex = 5
+    line.Color3 = color or Settings.ESPColor
+    line.Transparency = 0.3
+    line.Thickness = 1
+    line.Parent = object
+    ESPLines[object] = line
+    
+    -- Nama target
+    local billboard = Instance.new("BillboardGui")
+    billboard.Size = UDim2.new(0, 100, 0, 30)
+    billboard.Adornee = object
+    billboard.AlwaysOnTop = true
+    billboard.Parent = object
+    
+    local nameLabel = Instance.new("TextLabel")
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = text or "Target"
+    nameLabel.TextColor3 = color or Settings.ESPColor
+    nameLabel.TextScaled = true
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextStrokeTransparency = 0.5
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    nameLabel.Parent = billboard
+    ESPObjects[object .. "_name"] = billboard
+    
+    return {box = box, line = line, billboard = billboard}
+end
+
+local function RemoveESP(object)
+    if ESPObjects[object] then
+        ESPObjects[object]:Destroy()
+        ESPObjects[object] = nil
+    end
+    if ESPObjects[object .. "_name"] then
+        ESPObjects[object .. "_name"]:Destroy()
+        ESPObjects[object .. "_name"] = nil
+    end
+    if ESPLines[object] then
+        ESPLines[object]:Destroy()
+        ESPLines[object] = nil
+    end
+end
+
+local function ClearESP()
+    for obj, esp in pairs(ESPObjects) do
+        pcall(function() esp:Destroy() end)
+    end
+    for obj, line in pairs(ESPLines) do
+        pcall(function() line:Destroy() end)
+    end
+    ESPObjects = {}
+    ESPLines = {}
+end
+
+local function UpdateESP()
+    if not Settings.ESPEnabled then
+        ClearESP()
+        return
+    end
+    
+    -- ESP untuk Player
+    if Settings.ESPPlayers then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local char = player.Character
+                if not ESPObjects[char] then
+                    local color = player.TeamColor and player.TeamColor.Color or Settings.ESPColor
+                    local text = player.Name .. " [" .. math.floor(char.Humanoid.Health) .. " HP]"
+                    CreateESP(char, color, text)
+                end
+            end
+        end
+    end
+    
+    -- ESP untuk Mobs
+    if Settings.ESPMobs then
+        for _, obj in pairs(Workspace:GetChildren()) do
+            if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+                if not Players:GetPlayerFromCharacter(obj) and obj.Humanoid.Health > 0 then
+                    if not ESPObjects[obj] then
+                        local color = Settings.ESPColor
+                        local level = obj:FindFirstChild("Level") and obj.Level.Value or "?"
+                        local text = obj.Name .. " [Lv." .. tostring(level) .. "]"
+                        CreateESP(obj, color, text)
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Update line positions
+    for obj, line in pairs(ESPLines) do
+        if obj and obj:FindFirstChild("HumanoidRootPart") then
+            line.Points = {RootPart.Position, obj.HumanoidRootPart.Position}
+        end
+    end
+end
+
+-- ====== AUTO SEA BEAST ======
+local function FindSeaBeast()
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and v.Name:find("SeaBeast") or v.Name:find("Sea Beast") then
+            if v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function AttackSeaBeast(beast)
+    if not beast or not beast:FindFirstChild("HumanoidRootPart") then return end
+    
+    -- Cari boat atau platform untuk berdiri
+    local boat = nil
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and (v.Name:find("Boat") or v.Name:find("Ship")) then
+            if v:FindFirstChild("HumanoidRootPart") then
+                boat = v
+                break
+            end
+        end
+    end
+    
+    -- Jika tidak ada boat, teleport ke atas air
+    if not boat then
+        local waterPos = beast.HumanoidRootPart.Position + Vector3.new(0, 10, 0)
+        RootPart.CFrame = CFrame.new(waterPos)
+        task.wait(0.5)
+    end
+    
+    -- Serang Sea Beast
+    local hrp = beast.HumanoidRootPart
+    RootPart.CFrame = CFrame.new(RootPart.Position, hrp.Position)
+    
+    -- Gunakan skill/attack
+    game:GetService("VirtualUser"):CaptureController()
+    game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+    
+    -- Gunakan skill jika ada
+    for _, tool in pairs(Character:GetChildren()) do
+        if tool:IsA("Tool") and tool:FindFirstChild("RemoteEvent") then
+            tool.RemoteEvent:FireServer()
+        end
+    end
+end
+
+local function SeaBeastLoop()
+    while task.wait(0.5) do
+        if not Settings.AutoSeaBeast then continue end
+        
+        local beast = FindSeaBeast()
+        if beast then
+            AttackSeaBeast(beast)
+        else
+            -- Cari Sea Beast dengan scanning area
+            local scanArea = 500
+            for i = 1, 10 do
+                local randomPos = Vector3.new(
+                    math.random(-scanArea, scanArea),
+                    0,
+                    math.random(-scanArea, scanArea)
+                )
+                RootPart.CFrame = CFrame.new(randomPos + Vector3.new(0, 5, 0))
+                task.wait(1)
+                
+                beast = FindSeaBeast()
+                if beast then break end
+            end
+        end
+    end
+end
+
+-- ====== FUNGSI UTAMA ======
+local function FindNearestMob()
+    local nearest = nil
+    local minDist = math.huge
+    
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
+            if not Players:GetPlayerFromCharacter(v) and v.Humanoid.Health > 0 then
+                local dist = (RootPart.Position - v.HumanoidRootPart.Position).Magnitude
+                if dist < minDist and dist < Settings.AttackDistance then
+                    nearest = v
+                    minDist = dist
+                end
+            end
+        end
+    end
+    return nearest
+end
+
+local function AttackMob(mob)
+    if not mob or not mob:FindFirstChild("Humanoid") then return end
+    
+    local tool = Character:FindFirstChildOfClass("Tool")
+    if not tool then
+        for _, item in pairs(Player.Backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                item.Parent = Character
+                tool = item
+                break
+            end
+        end
+    end
+    
+    if tool then
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+        local hrp = mob.HumanoidRootPart
+        RootPart.CFrame = CFrame.new(RootPart.Position, hrp.Position)
+    end
+end
+
+local function AutoHeal()
+    if not Settings.AutoHeal then return end
+    
+    for _, item in pairs(Player.Backpack:GetChildren()) do
+        if item:IsA("Tool") and item:FindFirstChild("Heal") then
+            if Humanoid.Health / Humanoid.MaxHealth * 100 < Settings.HealThreshold then
+                item.Parent = Character
+                task.wait(0.5)
+                item.Parent = Player.Backpack
+                break
+            end
+        end
+    end
+end
+
+local function GetQuestNPC()
+    local quests = {
+        Jungle = {NPC = "QuestGiver", Pos = CFrame.new(-1150, 0, 2750)},
+        Pirate = {NPC = "PirateCaptain", Pos = CFrame.new(0, 0, 0)},
+        Ice = {NPC = "IceWizard", Pos = CFrame.new(0, 0, 0)},
+        Sky = {NPC = "SkyGuardian", Pos = CFrame.new(0, 0, 0)},
+        Marine = {NPC = "MarineCaptain", Pos = CFrame.new(0, 0, 0)}
+    }
+    return quests[Settings.QuestLevel]
+end
+
+local function AutoQuest()
+    local questData = GetQuestNPC()
+    if not questData then return end
+    
+    RootPart.CFrame = questData.Pos
+    task.wait(1)
+    
+    for _, v in pairs(Workspace:GetChildren()) do
+        if v:IsA("Model") and v.Name == questData.NPC then
+            local npcHRP = v:FindFirstChild("HumanoidRootPart")
+            if npcHRP then
+                RootPart.CFrame = CFrame.new(RootPart.Position, npcHRP.Position)
+                fireclickdetector(v:FindFirstChildOfClass("ClickDetector") or v:FindFirstChild("ClickDetector"))
+                task.wait(0.5)
+            end
+            break
+        end
+    end
+end
+
+-- ====== MAIN LOOP FARMING ======
+local function FarmLoop()
+    while task.wait(0.5) do
+        if not Settings.AutoFarm then continue end
+        
+        AutoHeal()
+        local target = FindNearestMob()
+        
+        if target then
+            AttackMob(target)
+        else
+            if Settings.FarmMode == "Quest" then
+                AutoQuest()
+            end
+        end
+    end
+end
+
+-- ====== GUI CUSTOM ======
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HanzHub"
+ScreenGui.Parent = Player.PlayerGui
+
+-- Background utama
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 380, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -190, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 30, 10)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(0, 150, 0)
+MainFrame.BackgroundTransparency = 0.95
+MainFrame.Parent = ScreenGui
+
+-- Efek glassmorphism
+local Blur = Instance.new("BlurEffect")
+Blur.Size = 5
+Blur.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
+TitleBar.BackgroundColor3 = Color3.fromRGB(0, 80, 0)
+TitleBar.BackgroundTransparency = 0.3
+TitleBar.Parent = MainFrame
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -30, 1, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "✦ HanzHub V3 ✦"
+TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+TitleLabel.TextScaled = true
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Parent = TitleBar
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, -30, 0, 15)
+SubTitle.Position = UDim2.new(0, 0, 1, 0)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "Auto Farm | Sea Beast | ESP"
+SubTitle.TextColor3 = Color3.fromRGB(100, 255, 100)
+SubTitle.TextScaled = true
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.Parent = TitleBar
+
+-- Tombol close
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 1, 0)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 50, 50)
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
+CloseBtn.MouseButton1Click:Connect(function()
+    ClearESP()
+    ScreenGui:Destroy()
+end)
+
+-- Scrollable container
+local ScrollingFrame = Instance.new("ScrollingFrame")
+ScrollingFrame.Size = UDim2.new(1, -10, 1, -45)
+ScrollingFrame.Position = UDim2.new(0, 5, 0, 40)
+ScrollingFrame.BackgroundTransparency = 1
+ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 700)
+ScrollingFrame.ScrollBarThickness = 5
+ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 150, 0)
+ScrollingFrame.Parent = MainFrame
+
+local UIL = Instance.new("UIListLayout")
+UIL.Padding = UDim.new(0, 8)
+UIL.SortOrder = Enum.SortOrder.LayoutOrder
+UIL.Parent = ScrollingFrame
+
+-- ====== FUNGSI MEMBUAT ELEMEN UI ======
+local function CreateLabel(text, color)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 25)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = color or Color3.fromRGB(0, 255, 0)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamSemibold
+    label.Parent = ScrollingFrame
+    return label
+end
+
+local function CreateToggle(text, flag, default)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 35)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 1
+    frame.BorderColor3 = Color3.fromRGB(0, 100, 0)
+    frame.Parent = ScrollingFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(100, 255, 100)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextScaled = true
+    label.Font = Enum.Font.Gotham
+    label.Parent = frame
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 55, 0, 25)
+    btn.Position = UDim2.new(0.8, 0, 0.5, -12.5)
+    btn.BackgroundColor3 = default and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+    btn.Text = default and "ON" or "OFF"
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = frame
+    
+    local state = default or false
+    
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.Text = state and "ON" or "OFF"
+        btn.BackgroundColor3 = state and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+        
+        if flag == "AutoFarm" then
+            Settings.AutoFarm = state
+        elseif flag == "AutoHeal" then
+            Settings.AutoHeal = state
+        elseif flag == "AutoSeaBeast" then
+            Settings.AutoSeaBeast = state
+        elseif flag == "ESPEnabled" then
+            Settings.ESPEnabled = state
+            if not state then ClearESP() end
+        elseif flag == "ESPPlayers" then
+            Settings.ESPPlayers = state
+        elseif flag == "ESPMobs" then
+            Settings.ESPMobs = state
+        end
+    end)
+    
+    return btn
+end
+
+local function CreateDropdown(text, options, flag, default)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 50)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 1
+    frame.BorderColor3 = Color3.fromRGB(0, 100, 0)
+    frame.Parent = ScrollingFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.fromRGB(100, 255, 100)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextScaled = true
+    label.Font = Enum.Font.Gotham
+    label.Parent = frame
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.8, 0, 0, 25)
+    btn.Position = UDim2.new(0.1, 0, 0.5, 0)
+    btn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+    btn.Text = default or options[1]
+    btn.TextColor3 = Color3.fromRGB(0, 255, 0)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.Gotham
+    btn.Parent = frame
+    
+    local currentOption = default or options[1]
+    local dropdownVisible = false
+    
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Size = UDim2.new(0.8, 0, 0, #options * 25)
+    dropdownFrame.Position = UDim2.new(0.1, 0, 1, 0)
+    dropdownFrame.BackgroundColor3 = Color3.fromRGB(10, 30, 10)
+    dropdownFrame.BackgroundTransparency = 0.9
+    dropdownFrame.BorderSizePixel = 1
+    dropdownFrame.BorderColor3 = Color3.fromRGB(0, 150, 0)
+    dropdownFrame.Visible = false
+    dropdownFrame.Parent = frame
+    
+    local dropdownUIL = Instance.new("UIListLayout")
+    dropdownUIL.Padding = UDim.new(0, 2)
+    dropdownUIL.SortOrder = Enum.SortOrder.LayoutOrder
+    dropdownUIL.Parent = dropdownFrame
+    
+    for i, option in ipairs(options) do
+        local optionBtn = Instance.new("TextButton")
+        optionBtn.Size = UDim2.new(1, 0, 0, 25)
+        optionBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        optionBtn.Text = option
+        optionBtn.TextColor3 = Color3.fromRGB(150, 255, 150)
+        optionBtn.TextScaled = true
+        optionBtn.Font = Enum.Font.Gotham
+        optionBtn.Parent = dropdownFrame
+        
+        optionBtn.MouseButton1Click:Connect(function()
+            currentOption = option
+            btn.Text = option
+            dropdownFrame.Visible = false
+            dropdownVisible = false
+            
+            if flag == "FarmMode" then
+                Settings.FarmMode = option
+            elseif flag == "QuestLevel" then
+                Settings.QuestLevel = option
+            end
+        end)
+    end
+    
+    btn.MouseButton1Click:Connect(function()
+        dropdownVisible = not dropdownVisible
+        dropdownFrame.Visible = dropdownVisible
+    end)
+    
+    return btn
+end
+
+local function CreateSlider(text, min, max, default, flag)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 40)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 40, 15)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 1
+    frame.BorderColor3 = Color3.fromRGB(0, 100, 0)
+    frame.Parent = ScrollingFrame
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.BackgroundTransparency = 1
+    label.Text = text .. ": " .. tostring(default)
+    label.TextColor3 = Color3.fromRGB(100, 255, 100)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextScaled = true
+    label.Font = Enum.Font.Gotham
+    label.Parent = frame
+    
+    local slider = Instance.new("Frame")
+    slider.Size = UDim2.new(0.8, 0, 0, 5)
+    slider.Position = UDim2.new(0.1, 0, 0.7, 0)
+    slider.BackgroundColor3 = Color3.fromRGB(30, 60, 30)
+    slider.BorderSizePixel = 0
+    slider.Parent = frame
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    fill.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    fill.BorderSizePixel = 0
+    fill.Parent = slider
+    
+    local value = default
+    
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local pos = input.Position.X - slider.AbsolutePosition.X
+            local percent = math.clamp(pos / slider.AbsoluteSize.X, 0, 1)
+            value = math.round(min + (max - min) * percent)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
+            label.Text = text .. ": " .. tostring(value)
+            
+            if flag == "AttackDistance" then
+                Settings.AttackDistance = val
