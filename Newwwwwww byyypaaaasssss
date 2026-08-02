@@ -1,0 +1,398 @@
+-- South Bronx V2 GUI (Enhanced)
+-- Features: Auto Farm Cook, Anti-Kick Bypass, Buy Marshmallow
+-- Theme: Blue & Gold
+
+-- Anti-Kick / Anti-Detection System
+local function antiKickBypass()
+    -- Bypass standard kick methods
+    local oldKick = game.Players.LocalPlayer.Kick
+    game.Players.LocalPlayer.Kick = function(self, message)
+        if message and message:lower():find("cheat") or message and message:lower():find("exploit") then
+            return -- Block kick related to cheating
+        else
+            oldKick(self, message)
+        end
+    end
+    
+    -- Block RemoteEvent spam detection
+    local oldFireServer = game:GetService("ReplicatedStorage").FindFirstChild("RemoteEvent") 
+    if oldFireServer then
+        getrawmetatable(game).__index = function(self, key)
+            if key == "FireServer" then
+                return function() end
+            end
+            return getrawmetatable(game).__index(self, key)
+        end
+    end
+    
+    -- Clear chat logs to prevent detection
+    if game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Chat") then
+        game:GetService("Players").LocalPlayer.PlayerGui.Chat:Destroy()
+    end
+end
+
+-- Execute Anti-Kick
+pcall(antiKickBypass)
+
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local MinimizeBtn = Instance.new("TextButton")
+local ContentFrame = Instance.new("Frame")
+local UIListLayout = Instance.new("UIListLayout")
+
+-- Auto Farm Cook Section
+local FarmCookFrame = Instance.new("Frame")
+local FarmCookLabel = Instance.new("TextLabel")
+local ToggleFarmBtn = Instance.new("TextButton")
+local UICornerBtn = Instance.new("UICorner")
+
+-- Buy Marshmallow Section (- / +)
+local MarshmallowFrame = Instance.new("Frame")
+local MarshmallowLabel = Instance.new("TextLabel")
+local MarshmallowMinusBtn = Instance.new("TextButton")
+local MarshmallowValueDisplay = Instance.new("TextLabel")
+local MarshmallowPlusBtn = Instance.new("TextButton")
+local BuyMarshmallowBtn = Instance.new("TextButton")
+
+-- Properties
+ScreenGui.Name = "SouthBronxV2Gui"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame (Small & Compact)
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
+MainFrame.BorderColor3 = Color3.fromRGB(212, 175, 55)
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0.35, 0, 0.25, 0)
+MainFrame.Size = UDim2.new(0, 250, 0, 240)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Top Bar
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(0, 51, 102)
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 8)
+TopBarCorner.Parent = TopBar
+
+Title.Name = "Title"
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0.05, 0, 0, 0)
+Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "South Bronx V2"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.TextSize = 13
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Parent = TopBar
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(212, 175, 55)
+MinimizeBtn.Position = UDim2.new(0.82, 0, 0.15, 0)
+MinimizeBtn.Size = UDim2.new(0, 22, 0, 20)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(15, 23, 42)
+MinimizeBtn.TextSize = 14
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 4)
+MinCorner.Parent = MinimizeBtn
+
+-- Content Frame
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Position = UDim2.new(0, 0, 0, 35)
+ContentFrame.Size = UDim2.new(1, 0, 1, -35)
+
+UIListLayout.Parent = ContentFrame
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 6)
+
+-- Auto Farm Cook Section
+FarmCookFrame.Name = "FarmCookFrame"
+FarmCookFrame.Parent = ContentFrame
+FarmCookFrame.BackgroundTransparency = 1
+FarmCookFrame.Size = UDim2.new(0.9, 0, 0, 50)
+
+FarmCookLabel.Parent = FarmCookFrame
+FarmCookLabel.BackgroundTransparency = 1
+FarmCookLabel.Size = UDim2.new(1, 0, 0, 18)
+FarmCookLabel.Font = Enum.Font.GothamMedium
+FarmCookLabel.Text = "Auto Farm Cook"
+FarmCookLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+FarmCookLabel.TextSize = 12
+
+ToggleFarmBtn.Name = "ToggleFarmBtn"
+ToggleFarmBtn.Parent = FarmCookFrame
+ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 51, 102)
+ToggleFarmBtn.Position = UDim2.new(0, 0, 0, 20)
+ToggleFarmBtn.Size = UDim2.new(1, 0, 0, 24)
+ToggleFarmBtn.Font = Enum.Font.GothamBold
+ToggleFarmBtn.Text = "OFF"
+ToggleFarmBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
+ToggleFarmBtn.TextSize = 12
+
+UICornerBtn.CornerRadius = UDim.new(0, 4)
+UICornerBtn.Parent = ToggleFarmBtn
+
+-- Buy Marshmallow Section
+MarshmallowFrame.Name = "MarshmallowFrame"
+MarshmallowFrame.Parent = ContentFrame
+MarshmallowFrame.BackgroundTransparency = 1
+MarshmallowFrame.Size = UDim2.new(0.9, 0, 0, 75)
+
+MarshmallowLabel.Parent = MarshmallowFrame
+MarshmallowLabel.BackgroundTransparency = 1
+MarshmallowLabel.Size = UDim2.new(1, 0, 0, 18)
+MarshmallowLabel.Font = Enum.Font.GothamMedium
+MarshmallowLabel.Text = "Buy Marshmallow Amount"
+MarshmallowLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+MarshmallowLabel.TextSize = 12
+
+-- Minus Button (Marshmallow)
+MarshmallowMinusBtn.Name = "MarshmallowMinusBtn"
+MarshmallowMinusBtn.Parent = MarshmallowFrame
+MarshmallowMinusBtn.BackgroundColor3 = Color3.fromRGB(0, 51, 102)
+MarshmallowMinusBtn.Position = UDim2.new(0, 0, 0, 20)
+MarshmallowMinusBtn.Size = UDim2.new(0, 30, 0, 24)
+MarshmallowMinusBtn.Font = Enum.Font.GothamBold
+MarshmallowMinusBtn.Text = "-"
+MarshmallowMinusBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+MarshmallowMinusBtn.TextSize = 14
+
+local MarshmallowMinusCorner = Instance.new("UICorner")
+MarshmallowMinusCorner.CornerRadius = UDim.new(0, 4)
+MarshmallowMinusCorner.Parent = MarshmallowMinusBtn
+
+-- Value Display (Marshmallow)
+MarshmallowValueDisplay.Name = "MarshmallowValueDisplay"
+MarshmallowValueDisplay.Parent = MarshmallowFrame
+MarshmallowValueDisplay.BackgroundColor3 = Color3.fromRGB(10, 15, 30)
+MarshmallowValueDisplay.Position = UDim2.new(0, 35, 0, 20)
+MarshmallowValueDisplay.Size = UDim2.new(1, -70, 0, 24)
+MarshmallowValueDisplay.Font = Enum.Font.GothamBold
+MarshmallowValueDisplay.Text = "1"
+MarshmallowValueDisplay.TextColor3 = Color3.fromRGB(255, 255, 255)
+MarshmallowValueDisplay.TextSize = 12
+
+local MarshmallowValueCorner = Instance.new("UICorner")
+MarshmallowValueCorner.CornerRadius = UDim.new(0, 4)
+MarshmallowValueCorner.Parent = MarshmallowValueDisplay
+
+-- Plus Button (Marshmallow)
+MarshmallowPlusBtn.Name = "MarshmallowPlusBtn"
+MarshmallowPlusBtn.Parent = MarshmallowFrame
+MarshmallowPlusBtn.BackgroundColor3 = Color3.fromRGB(0, 51, 102)
+MarshmallowPlusBtn.Position = UDim2.new(1, -30, 0, 20)
+MarshmallowPlusBtn.Size = UDim2.new(0, 30, 0, 24)
+MarshmallowPlusBtn.Font = Enum.Font.GothamBold
+MarshmallowPlusBtn.Text = "+"
+MarshmallowPlusBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+MarshmallowPlusBtn.TextSize = 14
+
+local MarshmallowPlusCorner = Instance.new("UICorner")
+MarshmallowPlusCorner.CornerRadius = UDim.new(0, 4)
+MarshmallowPlusCorner.Parent = MarshmallowPlusBtn
+
+-- Buy Marshmallow Button
+BuyMarshmallowBtn.Name = "BuyMarshmallowBtn"
+BuyMarshmallowBtn.Parent = MarshmallowFrame
+BuyMarshmallowBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 160)
+BuyMarshmallowBtn.Position = UDim2.new(0, 0, 0, 48)
+BuyMarshmallowBtn.Size = UDim2.new(1, 0, 0, 24)
+BuyMarshmallowBtn.Font = Enum.Font.GothamBold
+BuyMarshmallowBtn.Text = "Buy Marshmallow"
+BuyMarshmallowBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+BuyMarshmallowBtn.TextSize = 12
+
+local BuyCorner = Instance.new("UICorner")
+BuyCorner.CornerRadius = UDim.new(0, 4)
+BuyCorner.Parent = BuyMarshmallowBtn
+
+-- Functionality Logic
+local autoFarmActive = false
+local marshmallowAmount = 1
+local farmSpeed = 1
+
+-- Toggle Auto Farm Cook with Anti-Detection
+ToggleFarmBtn.MouseButton1Click:Connect(function()
+    autoFarmActive = not autoFarmActive
+    if autoFarmActive then
+        ToggleFarmBtn.Text = "ON"
+        ToggleFarmBtn.TextColor3 = Color3.fromRGB(75, 255, 75)
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 80, 160)
+        
+        -- Auto Farm Loop with Bypass
+        task.spawn(function()
+            local counter = 0
+            while autoFarmActive do
+                pcall(function()
+                    -- Random delay variation to avoid detection
+                    local randomDelay = (farmSpeed + math.random(1, 3)) / 10
+                    
+                    -- Find and interact with cook prompts with randomized timing
+                    for _, v in pairs(workspace:GetDescendants()) do
+                        if v:IsA("ProximityPrompt") then
+                            local actionText = v.ActionText:lower() or ""
+                            local objectText = v.ObjectText:lower() or ""
+                            
+                            if actionText:find("cook") or objectText:find("cook") or objectText:find("food") then
+                                -- Random click offset to avoid detection
+                                if math.random(1, 100) > 20 then
+                                    fireproximityprompt(v)
+                                end
+                                task.wait(math.random(1, 5) / 100)
+                            end
+                        end
+                    end
+                    
+                    -- Random extra delay to look human
+                    task.wait(randomDelay + math.random(1, 5) / 100)
+                    counter = counter + 1
+                    
+                    -- Clear memory every 50 loops to prevent lag
+                    if counter % 50 == 0 then
+                        collectgarbage()
+                    end
+                end)
+            end
+        end)
+    else
+        ToggleFarmBtn.Text = "OFF"
+        ToggleFarmBtn.TextColor3 = Color3.fromRGB(255, 75, 75)
+        ToggleFarmBtn.BackgroundColor3 = Color3.fromRGB(0, 51, 102)
+    end
+end)
+
+-- Marshmallow Minus Button
+MarshmallowMinusBtn.MouseButton1Click:Connect(function()
+    if marshmallowAmount > 1 then
+        marshmallowAmount = marshmallowAmount - 1
+        MarshmallowValueDisplay.Text = tostring(marshmallowAmount)
+    end
+end)
+
+-- Marshmallow Plus Button
+MarshmallowPlusBtn.MouseButton1Click:Connect(function()
+    marshmallowAmount = marshmallowAmount + 1
+    MarshmallowValueDisplay.Text = tostring(marshmallowAmount)
+end)
+
+-- Buy Marshmallow Function with Bypass
+BuyMarshmallowBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        -- Try multiple remote event methods
+        local remoteEvents = {
+            game.ReplicatedStorage:FindFirstChild("RemoteEvent"),
+            game.ReplicatedStorage:FindFirstChild("BuyItem"),
+            game.ReplicatedStorage:FindFirstChild("Purchase"),
+            game.ReplicatedStorage:FindFirstChild("Shop"),
+            game.Workspace:FindFirstChild("RemoteEvent")
+        }
+        
+        for _, remote in ipairs(remoteEvents) do
+            if remote then
+                if remote:IsA("RemoteEvent") then
+                    remote:FireServer("Marshmallow", marshmallowAmount)
+                    remote:FireServer("BuyMarshmallow", marshmallowAmount)
+                    remote:FireServer("PurchaseMarshmallow", marshmallowAmount)
+                elseif remote:IsA("RemoteFunction") then
+                    remote:InvokeServer("Marshmallow", marshmallowAmount)
+                end
+            end
+        end
+        
+        -- Try GUI Button interaction
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("TextButton") or v:IsA("ImageButton") then
+                local text = (v.Text or ""):lower()
+                if text:find("marshmallow") or text:find("buy") or text:find("shop") then
+                    v:FireServer()
+                    v:Click()
+                    task.wait(0.1)
+                end
+            end
+        end
+        
+        -- Visual feedback
+        BuyMarshmallowBtn.Text = "Purchased!"
+        BuyMarshmallowBtn.TextColor3 = Color3.fromRGB(75, 255, 75)
+        task.wait(2)
+        BuyMarshmallowBtn.Text = "Buy Marshmallow"
+        BuyMarshmallowBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+    end)
+end)
+
+-- Minimize/Maximize Logic
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        ContentFrame.Visible = false
+        MainFrame.Size = UDim2.new(0, 250, 0, 30)
+        MinimizeBtn.Text = "+"
+    else
+        ContentFrame.Visible = true
+        MainFrame.Size = UDim2.new(0, 250, 0, 240)
+        MinimizeBtn.Text = "-"
+    end
+end)
+
+-- Additional Anti-Detection Measures
+local function additionalBypass()
+    -- Prevent GUI from being detected by anti-cheat
+    pcall(function()
+        local gui = game.CoreGui:FindFirstChild("SouthBronxV2Gui")
+        if gui then
+            gui.Enabled = true
+            gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            -- Make GUI harder to detect
+            setfenv(1, {})
+        end
+    end)
+    
+    -- Bypass admin detection
+    pcall(function()
+        local bannedKeybinds = {
+            "Kick", "Ban", "Admin", "Detect", "Monitor", "Log", "Report"
+        }
+        for _, key in ipairs(bannedKeybinds) do
+            if game:GetService("Players").LocalPlayer:FindFirstChild(key) then
+                game:GetService("Players").LocalPlayer:FindFirstChild(key).Parent = nil
+            end
+        end
+    end)
+end
+
+-- Run additional bypass
+pcall(additionalBypass)
+
+-- Prevent GUI from being deleted
+local guiConnection
+guiConnection = game.CoreGui.ChildRemoved:Connect(function(child)
+    if child.Name == "SouthBronxV2Gui" then
+        task.wait(1)
+        if not game.CoreGui:FindFirstChild("SouthBronxV2Gui") then
+            local newGui = ScreenGui:Clone()
+            newGui.Parent = game.CoreGui
+        end
+    end
+end)
+
+print("South Bronx V2 Loaded Successfully!")
+print("Features: Auto Farm Cook (with bypass), Buy Marshmallow")
