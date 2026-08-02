@@ -1,0 +1,247 @@
+// South Bronx Trenches Script v2.1
+// =================================
+
+class SouthBronxTrenches {
+    constructor() {
+        // Status
+        this.autoFramActive = false;
+        this.autoBuyCount = 0;
+        this.maxBuy = 99;
+        this.minBuy = 0;
+        
+        // Interval references
+        this.framInterval = null;
+        this.buyInterval = null;
+        
+        // Status log
+        this.statusLog = [];
+        this.isRunning = false;
+        
+        // Konfigurasi
+        this.config = {
+            framIntervalMs: 4000,    // 4 detik
+            buyIntervalMs: 3000,     // 3 detik
+            framCookDuration: 300,   // efek visual ms
+            buyEffectDuration: 350
+        };
+    }
+
+    // ========== AUTO FRAM COOK ==========
+    toggleFram() {
+        this.autoFramActive = !this.autoFramActive;
+        
+        if (this.autoFramActive) {
+            this.startFramCook();
+            this.log('🔥 Auto Fram Cook: AKTIF');
+        } else {
+            this.stopFramCook();
+            this.log('❌ Auto Fram Cook: NONAKTIF');
+        }
+        
+        return this.autoFramActive;
+    }
+
+    startFramCook() {
+        if (this.framInterval) clearInterval(this.framInterval);
+        
+        this.framInterval = setInterval(() => {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            this.log(`🍳 Fram Cook berjalan @ ${timestamp}`);
+            this.emitEffect('framCook');
+        }, this.config.framIntervalMs);
+    }
+
+    stopFramCook() {
+        if (this.framInterval) {
+            clearInterval(this.framInterval);
+            this.framInterval = null;
+        }
+        this.log('⏹️ Fram Cook berhenti');
+    }
+
+    // ========== AUTO BUY ==========
+    setBuyCount(value) {
+        let newValue = value;
+        if (newValue < this.minBuy) newValue = this.minBuy;
+        if (newValue > this.maxBuy) newValue = this.maxBuy;
+        
+        this.autoBuyCount = newValue;
+        this.updateBuyStatus();
+        return this.autoBuyCount;
+    }
+
+    increaseBuy(amount = 1) {
+        return this.setBuyCount(this.autoBuyCount + amount);
+    }
+
+    decreaseBuy(amount = 1) {
+        return this.setBuyCount(this.autoBuyCount - amount);
+    }
+
+    updateBuyStatus() {
+        if (this.autoBuyCount > 0 && !this.buyInterval) {
+            this.startAutoBuy();
+        } else if (this.autoBuyCount === 0 && this.buyInterval) {
+            this.stopAutoBuy();
+        }
+        
+        this.log(`🛒 Auto Buy: ${this.autoBuyCount}`);
+        this.emitEffect('buyUpdate', { count: this.autoBuyCount });
+    }
+
+    startAutoBuy() {
+        if (this.buyInterval) clearInterval(this.buyInterval);
+        
+        this.buyInterval = setInterval(() => {
+            const timestamp = new Date().toLocaleTimeString('id-ID');
+            this.log(`💳 Auto Buy +1 (total: ${this.autoBuyCount}) @ ${timestamp}`);
+            this.emitEffect('buyExecute', { count: this.autoBuyCount });
+        }, this.config.buyIntervalMs);
+    }
+
+    stopAutoBuy() {
+        if (this.buyInterval) {
+            clearInterval(this.buyInterval);
+            this.buyInterval = null;
+        }
+        this.log('⏹️ Auto Buy berhenti');
+    }
+
+    // ========== LOGGING ==========
+    log(message) {
+        const timestamp = new Date().toLocaleTimeString('id-ID');
+        const logEntry = `[${timestamp}] ${message}`;
+        this.statusLog.push(logEntry);
+        
+        // Keep log size manageable
+        if (this.statusLog.length > 50) {
+            this.statusLog.shift();
+        }
+        
+        console.log(logEntry);
+        this.emitEffect('logUpdate', { message: logEntry, fullLog: this.statusLog });
+    }
+
+    // ========== EFFECT SYSTEM (Event Emitter) ==========
+    // Untuk hook ke UI jika diperlukan
+    effectListeners = {};
+
+    on(event, callback) {
+        if (!this.effectListeners[event]) {
+            this.effectListeners[event] = [];
+        }
+        this.effectListeners[event].push(callback);
+    }
+
+    emitEffect(event, data = {}) {
+        if (this.effectListeners[event]) {
+            this.effectListeners[event].forEach(callback => callback(data));
+        }
+    }
+
+    // ========== RESET ==========
+    resetAll() {
+        // Matikan semua
+        this.autoFramActive = false;
+        this.autoBuyCount = 0;
+        
+        if (this.framInterval) {
+            clearInterval(this.framInterval);
+            this.framInterval = null;
+        }
+        if (this.buyInterval) {
+            clearInterval(this.buyInterval);
+            this.buyInterval = null;
+        }
+        
+        this.log('🔄 RESET semua fitur');
+        this.emitEffect('reset');
+    }
+
+    // ========== STATUS ==========
+    getStatus() {
+        return {
+            autoFram: this.autoFramActive,
+            autoBuy: this.autoBuyCount,
+            framRunning: !!this.framInterval,
+            buyRunning: !!this.buyInterval,
+            logCount: this.statusLog.length
+        };
+    }
+
+    // ========== RUN / STOP ==========
+    run() {
+        this.isRunning = true;
+        this.log('🚀 South Bronx Trenches siap!');
+        this.emitEffect('running');
+        return this;
+    }
+
+    stop() {
+        this.isRunning = false;
+        this.resetAll();
+        this.log('⏹️ Script dihentikan');
+        this.emitEffect('stopped');
+        return this;
+    }
+
+    // ========== SHORTCUT COMMANDS ==========
+    command(cmd) {
+        const parts = cmd.trim().toLowerCase().split(' ');
+        const action = parts[0];
+        const value = parseInt(parts[1]) || 1;
+
+        switch(action) {
+            case 'fram':
+            case 'toggle':
+                return this.toggleFram();
+            case 'buy':
+            case '+':
+                return this.increaseBuy(value);
+            case 'minus':
+            case '-':
+                return this.decreaseBuy(value);
+            case 'set':
+                return this.setBuyCount(value);
+            case 'reset':
+                return this.resetAll();
+            case 'status':
+                return this.getStatus();
+            default:
+                this.log(`⚠️ Perintah tidak dikenal: ${cmd}`);
+                return null;
+        }
+    }
+}
+
+// ========== EKSPOR ==========
+module.exports = SouthBronxTrenches;
+
+// ========== CONTOH PENGGUNAAN ==========
+/*
+const sbt = new SouthBronxTrenches();
+
+// Event listener untuk efek
+sbt.on('framCook', () => {
+    console.log('✨ Efek Fram Cook!');
+});
+
+sbt.on('buyExecute', (data) => {
+    console.log(`💫 Efek Buy! Total: ${data.count}`);
+});
+
+sbt.on('logUpdate', (data) => {
+    console.log(`📝 ${data.message}`);
+});
+
+// Jalankan
+sbt.run();
+
+// Menggunakan perintah
+sbt.command('fram');      // Aktifkan auto fram cook
+sbt.command('buy 5');     // Set auto buy ke 5
+sbt.command('+ 3');       // Tambah 3
+sbt.command('- 2');       // Kurangi 2
+sbt.command('status');    // Lihat status
+sbt.command('reset');     // Reset semua
+*/
