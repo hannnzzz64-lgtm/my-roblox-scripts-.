@@ -1,0 +1,475 @@
+-- JETYX FARMING - Stealth Edition
+-- Created by: JETYX
+-- Version: 2.0
+
+local player = game.Players.LocalPlayer
+local guiService = game:GetService("GuiService")
+local userInputService = game:GetService("UserInputService")
+
+-- Buat GUI utama
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "JetyxFarming"
+screenGui.Parent = player.PlayerGui
+
+-- Frame utama
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 380, 0, 480)
+mainFrame.Position = UDim2.new(0.5, -190, 0.5, -240)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 30)
+mainFrame.BackgroundTransparency = 0.05
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Efek blur/glass
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = mainFrame
+
+-- Drop shadow
+local shadow = Instance.new("ImageLabel")
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://1316045375"
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 10, 10)
+shadow.Parent = mainFrame
+
+-- Glow border
+local glowBorder = Instance.new("Frame")
+glowBorder.Size = UDim2.new(1, 2, 1, 2)
+glowBorder.Position = UDim2.new(0, -1, 0, -1)
+glowBorder.BackgroundTransparency = 1
+glowBorder.BorderSizePixel = 2
+glowBorder.BorderColor3 = Color3.fromRGB(0, 150, 255)
+glowBorder.Parent = mainFrame
+
+local glowCorner = Instance.new("UICorner")
+glowCorner.CornerRadius = UDim.new(0, 15)
+glowCorner.Parent = glowBorder
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 50)
+titleBar.BackgroundTransparency = 0.3
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 15)
+titleCorner.Parent = titleBar
+
+-- Icon / Logo
+local logoIcon = Instance.new("TextLabel")
+logoIcon.Size = UDim2.new(0, 30, 0, 30)
+logoIcon.Position = UDim2.new(0, 10, 0, 7)
+logoIcon.BackgroundTransparency = 1
+logoIcon.Text = "⚡"
+logoIcon.TextColor3 = Color3.fromRGB(0, 200, 255)
+logoIcon.TextSize = 22
+logoIcon.Font = Enum.Font.SourceSans
+logoIcon.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -80, 1, 0)
+titleText.Position = UDim2.new(0, 45, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "JETYX FARMING"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 22
+titleText.Font = Enum.Font.GothamBold
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Parent = titleBar
+
+local stealthLabel = Instance.new("TextLabel")
+stealthLabel.Size = UDim2.new(0, 80, 1, 0)
+stealthLabel.Position = UDim2.new(1, -100, 0, 0)
+stealthLabel.BackgroundTransparency = 1
+stealthLabel.Text = "⚡ STEALTH"
+stealthLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+stealthLabel.TextSize = 13
+stealthLabel.Font = Enum.Font.GothamBold
+stealthLabel.TextXAlignment = Enum.TextXAlignment.Right
+stealthLabel.TextYAlignment = Enum.TextYAlignment.Bottom
+stealthLabel.Parent = titleBar
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 32, 0, 32)
+closeBtn.Position = UDim2.new(1, -40, 0, 6)
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+closeBtn.BackgroundTransparency = 0.2
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 18
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeBtn
+
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Tab Buttons
+local tab1 = Instance.new("TextButton")
+tab1.Size = UDim2.new(0, 90, 0, 35)
+tab1.Position = UDim2.new(0, 15, 0, 55)
+tab1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+tab1.BackgroundTransparency = 0.3
+tab1.Text = "📋 Page 1"
+tab1.TextColor3 = Color3.fromRGB(255, 255, 255)
+tab1.TextSize = 14
+tab1.Font = Enum.Font.GothamBold
+tab1.BorderSizePixel = 0
+tab1.Parent = mainFrame
+
+local tab1Corner = Instance.new("UICorner")
+tab1Corner.CornerRadius = UDim.new(0, 8)
+tab1Corner.Parent = tab1
+
+local tab2 = Instance.new("TextButton")
+tab2.Size = UDim2.new(0, 90, 0, 35)
+tab2.Position = UDim2.new(0, 115, 0, 55)
+tab2.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+tab2.BackgroundTransparency = 0.3
+tab2.Text = "📊 Page 2"
+tab2.TextColor3 = Color3.fromRGB(255, 255, 255)
+tab2.TextSize = 14
+tab2.Font = Enum.Font.GothamBold
+tab2.BorderSizePixel = 0
+tab2.Parent = mainFrame
+
+local tab2Corner = Instance.new("UICorner")
+tab2Corner.CornerRadius = UDim.new(0, 8)
+tab2Corner.Parent = tab2
+
+-- Page 1 Content
+local page1 = Instance.new("Frame")
+page1.Size = UDim2.new(1, -20, 1, -110)
+page1.Position = UDim2.new(0, 10, 0, 100)
+page1.BackgroundTransparency = 1
+page1.Parent = mainFrame
+
+-- Main & Stats Frame
+local mainStatsFrame = Instance.new("Frame")
+mainStatsFrame.Size = UDim2.new(1, 0, 0, 150)
+mainStatsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+mainStatsFrame.BackgroundTransparency = 0.4
+mainStatsFrame.BorderSizePixel = 0
+mainStatsFrame.Parent = page1
+
+local mainStatsCorner = Instance.new("UICorner")
+mainStatsCorner.CornerRadius = UDim.new(0, 10)
+mainStatsCorner.Parent = mainStatsFrame
+
+-- Main Label dengan icon
+local mainLabel = Instance.new("TextLabel")
+mainLabel.Size = UDim2.new(0, 60, 0, 25)
+mainLabel.Position = UDim2.new(0, 12, 0, 8)
+mainLabel.BackgroundTransparency = 1
+mainLabel.Text = "⚙️ MAIN"
+mainLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+mainLabel.TextSize = 16
+mainLabel.Font = Enum.Font.GothamBold
+mainLabel.TextXAlignment = Enum.TextXAlignment.Left
+mainLabel.Parent = mainStatsFrame
+
+local statsLabel = Instance.new("TextLabel")
+statsLabel.Size = UDim2.new(0, 60, 0, 25)
+statsLabel.Position = UDim2.new(1, -70, 0, 8)
+statsLabel.BackgroundTransparency = 1
+statsLabel.Text = "📊 STATS"
+statsLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+statsLabel.TextSize = 16
+statsLabel.Font = Enum.Font.GothamBold
+statsLabel.TextXAlignment = Enum.TextXAlignment.Right
+statsLabel.Parent = mainStatsFrame
+
+-- Divider
+local divider = Instance.new("Frame")
+divider.Size = UDim2.new(0.9, 0, 0, 1)
+divider.Position = UDim2.new(0.05, 0, 0, 35)
+divider.BackgroundColor3 = Color3.fromRGB(100, 100, 150)
+divider.BackgroundTransparency = 0.5
+divider.BorderSizePixel = 0
+divider.Parent = mainStatsFrame
+
+-- Control Toggles dengan gaya baru
+local controlsLabel = Instance.new("TextLabel")
+controlsLabel.Size = UDim2.new(0, 100, 0, 20)
+controlsLabel.Position = UDim2.new(0, 12, 0, 42)
+controlsLabel.BackgroundTransparency = 1
+controlsLabel.Text = "CONTROLS"
+controlsLabel.TextColor3 = Color3.fromRGB(180, 180, 220)
+controlsLabel.TextSize = 12
+controlsLabel.Font = Enum.Font.Gotham
+controlsLabel.TextXAlignment = Enum.TextXAlignment.Left
+controlsLabel.Parent = mainStatsFrame
+
+-- Toggle Autofarming
+local autofarmToggle = Instance.new("TextButton")
+autofarmToggle.Size = UDim2.new(0, 140, 0, 30)
+autofarmToggle.Position = UDim2.new(0, 12, 0, 65)
+autofarmToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+autofarmToggle.Text = "🤖 Autofarming"
+autofarmToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+autofarmToggle.TextSize = 13
+autofarmToggle.Font = Enum.Font.Gotham
+autofarmToggle.BorderSizePixel = 0
+autofarmToggle.Parent = mainStatsFrame
+
+local autofarmCorner = Instance.new("UICorner")
+autofarmCorner.CornerRadius = UDim.new(0, 6)
+autofarmCorner.Parent = autofarmToggle
+
+local autofarmEnabled = false
+autofarmToggle.MouseButton1Click:Connect(function()
+    autofarmEnabled = not autofarmEnabled
+    autofarmToggle.BackgroundColor3 = autofarmEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 80)
+    autofarmToggle.Text = autofarmEnabled and "✅ Autofarming ON" or "🤖 Autofarming"
+    print("[JETYX] Autofarming:", autofarmEnabled)
+end)
+
+-- Toggle Anti Death
+local antiDeathToggle = Instance.new("TextButton")
+antiDeathToggle.Size = UDim2.new(0, 140, 0, 30)
+antiDeathToggle.Position = UDim2.new(0, 165, 0, 65)
+antiDeathToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+antiDeathToggle.Text = "🛡️ Anti Death"
+antiDeathToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+antiDeathToggle.TextSize = 13
+antiDeathToggle.Font = Enum.Font.Gotham
+antiDeathToggle.BorderSizePixel = 0
+antiDeathToggle.Parent = mainStatsFrame
+
+local antiDeathCorner = Instance.new("UICorner")
+antiDeathCorner.CornerRadius = UDim.new(0, 6)
+antiDeathCorner.Parent = antiDeathToggle
+
+local antiDeathEnabled = false
+antiDeathToggle.MouseButton1Click:Connect(function()
+    antiDeathEnabled = not antiDeathEnabled
+    antiDeathToggle.BackgroundColor3 = antiDeathEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 80)
+    antiDeathToggle.Text = antiDeathEnabled and "✅ Anti Death ON" or "🛡️ Anti Death"
+    print("[JETYX] Anti Death:", antiDeathEnabled)
+end)
+
+-- Toggle Auto Rejoiner
+local autoRejoinToggle = Instance.new("TextButton")
+autoRejoinToggle.Size = UDim2.new(0, 140, 0, 30)
+autoRejoinToggle.Position = UDim2.new(0, 12, 0, 105)
+autoRejoinToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+autoRejoinToggle.Text = "🔄 Auto Rejoiner"
+autoRejoinToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoRejoinToggle.TextSize = 13
+autoRejoinToggle.Font = Enum.Font.Gotham
+autoRejoinToggle.BorderSizePixel = 0
+autoRejoinToggle.Parent = mainStatsFrame
+
+local autoRejoinCorner = Instance.new("UICorner")
+autoRejoinCorner.CornerRadius = UDim.new(0, 6)
+autoRejoinCorner.Parent = autoRejoinToggle
+
+local autoRejoinEnabled = false
+autoRejoinToggle.MouseButton1Click:Connect(function()
+    autoRejoinEnabled = not autoRejoinEnabled
+    autoRejoinToggle.BackgroundColor3 = autoRejoinEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 80)
+    autoRejoinToggle.Text = autoRejoinEnabled and "✅ Auto Rejoiner ON" or "🔄 Auto Rejoiner"
+    print("[JETYX] Auto Rejoiner:", autoRejoinEnabled)
+end)
+
+-- Toggle Card Scam
+local cardScamToggle = Instance.new("TextButton")
+cardScamToggle.Size = UDim2.new(0, 140, 0, 30)
+cardScamToggle.Position = UDim2.new(0, 165, 0, 105)
+cardScamToggle.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+cardScamToggle.Text = "🃏 Card Scam"
+cardScamToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+cardScamToggle.TextSize = 13
+cardScamToggle.Font = Enum.Font.Gotham
+cardScamToggle.BorderSizePixel = 0
+cardScamToggle.Parent = mainStatsFrame
+
+local cardScamCorner = Instance.new("UICorner")
+cardScamCorner.CornerRadius = UDim.new(0, 6)
+cardScamCorner.Parent = cardScamToggle
+
+local cardScamEnabled = false
+cardScamToggle.MouseButton1Click:Connect(function()
+    cardScamEnabled = not cardScamEnabled
+    cardScamToggle.BackgroundColor3 = cardScamEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 80)
+    cardScamToggle.Text = cardScamEnabled and "✅ Card Scam ON" or "🃏 Card Scam"
+    print("[JETYX] Card Scam:", cardScamEnabled)
+end)
+
+-- Actions
+local actionsFrame = Instance.new("Frame")
+actionsFrame.Size = UDim2.new(1, 0, 0, 85)
+actionsFrame.Position = UDim2.new(0, 0, 0, 160)
+actionsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+actionsFrame.BackgroundTransparency = 0.4
+actionsFrame.BorderSizePixel = 0
+actionsFrame.Parent = page1
+
+local actionsCorner = Instance.new("UICorner")
+actionsCorner.CornerRadius = UDim.new(0, 10)
+actionsCorner.Parent = actionsFrame
+
+local actionsLabel = Instance.new("TextLabel")
+actionsLabel.Size = UDim2.new(1, -20, 0, 20)
+actionsLabel.Position = UDim2.new(0, 12, 0, 8)
+actionsLabel.BackgroundTransparency = 1
+actionsLabel.Text = "🚀 ACTIONS"
+actionsLabel.TextColor3 = Color3.fromRGB(0, 200, 255)
+actionsLabel.TextSize = 16
+actionsLabel.Font = Enum.Font.GothamBold
+actionsLabel.TextXAlignment = Enum.TextXAlignment.Left
+actionsLabel.Parent = actionsFrame
+
+-- Spawn DirtBike Button
+local spawnBikeBtn = Instance.new("TextButton")
+spawnBikeBtn.Size = UDim2.new(0, 165, 0, 35)
+spawnBikeBtn.Position = UDim2.new(0, 12, 0, 38)
+spawnBikeBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+spawnBikeBtn.Text = "🏍️ Spawn DirtBike ($35K)"
+spawnBikeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+spawnBikeBtn.TextSize = 13
+spawnBikeBtn.Font = Enum.Font.GothamBold
+spawnBikeBtn.BorderSizePixel = 0
+spawnBikeBtn.Parent = actionsFrame
+
+local spawnBikeCorner = Instance.new("UICorner")
+spawnBikeCorner.CornerRadius = UDim.new(0, 6)
+spawnBikeCorner.Parent = spawnBikeBtn
+
+spawnBikeBtn.MouseButton1Click:Connect(function()
+    print("[JETYX] Spawning DirtBike...")
+    -- Tambahkan kode spawn DirtBike di sini
+    -- Contoh: game.ReplicatedStorage.RemoteEvent:FireServer("SpawnVehicle", "DirtBike")
+end)
+
+-- Rejoin Game Button
+local rejoinBtn = Instance.new("TextButton")
+rejoinBtn.Size = UDim2.new(0, 165, 0, 35)
+rejoinBtn.Position = UDim2.new(0, 185, 0, 38)
+rejoinBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
+rejoinBtn.Text = "🔁 Rejoin Game"
+rejoinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+rejoinBtn.TextSize = 13
+rejoinBtn.Font = Enum.Font.GothamBold
+rejoinBtn.BorderSizePixel = 0
+rejoinBtn.Parent = actionsFrame
+
+local rejoinCorner = Instance.new("UICorner")
+rejoinCorner.CornerRadius = UDim.new(0, 6)
+rejoinCorner.Parent = rejoinBtn
+
+rejoinBtn.MouseButton1Click:Connect(function()
+    print("[JETYX] Rejoining game...")
+    game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
+
+-- Page 2 (Stats & Info)
+local page2 = Instance.new("Frame")
+page2.Size = UDim2.new(1, -20, 1, -110)
+page2.Position = UDim2.new(0, 10, 0, 100)
+page2.BackgroundTransparency = 1
+page2.Visible = false
+page2.Parent = mainFrame
+
+-- Stats Page Content
+local statsPageFrame = Instance.new("Frame")
+statsPageFrame.Size = UDim2.new(1, 0, 1, 0)
+statsPageFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+statsPageFrame.BackgroundTransparency = 0.4
+statsPageFrame.BorderSizePixel = 0
+statsPageFrame.Parent = page2
+
+local statsPageCorner = Instance.new("UICorner")
+statsPageCorner.CornerRadius = UDim.new(0, 10)
+statsPageCorner.Parent = statsPageFrame
+
+local statsTitle = Instance.new("TextLabel")
+statsTitle.Size = UDim2.new(1, -20, 0, 30)
+statsTitle.Position = UDim2.new(0, 10, 0, 10)
+statsTitle.BackgroundTransparency = 1
+statsTitle.Text = "📊 PLAYER STATISTICS"
+statsTitle.TextColor3 = Color3.fromRGB(0, 200, 255)
+statsTitle.TextSize = 18
+statsTitle.Font = Enum.Font.GothamBold
+statsTitle.TextXAlignment = Enum.TextXAlignment.Left
+statsTitle.Parent = statsPageFrame
+
+-- Player Stats
+local playerStats = {
+    {name = "💰 Coins", value = "125,000"},
+    {name = "⭐ Level", value = "42"},
+    {name = "⚔️ Kills", value = "87"},
+    {name = "💀 Deaths", value = "12"},
+    {name = "🏆 Wins", value = "23"},
+    {name = "📈 Win Rate", value = "65%"}
+}
+
+for i, stat in ipairs(playerStats) do
+    local statFrame = Instance.new("Frame")
+    statFrame.Size = UDim2.new(0.45, -10, 0, 35)
+    statFrame.Position = UDim2.new((i-1) % 2 == 0 and 0.025 or 0.525, 0, math.floor((i-1)/2) * 0.13 + 0.08, 0)
+    statFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 50)
+    statFrame.BackgroundTransparency = 0.5
+    statFrame.BorderSizePixel = 0
+    statFrame.Parent = statsPageFrame
+    
+    local statCorner = Instance.new("UICorner")
+    statCorner.CornerRadius = UDim.new(0, 6)
+    statCorner.Parent = statFrame
+    
+    local statLabel = Instance.new("TextLabel")
+    statLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    statLabel.Position = UDim2.new(0, 10, 0, 0)
+    statLabel.BackgroundTransparency = 1
+    statLabel.Text = stat.name
+    statLabel.TextColor3 = Color3.fromRGB(180, 180, 220)
+    statLabel.TextSize = 13
+    statLabel.Font = Enum.Font.Gotham
+    statLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statLabel.Parent = statFrame
+    
+    local statValue = Instance.new("TextLabel")
+    statValue.Size = UDim2.new(0.5, 0, 1, 0)
+    statValue.Position = UDim2.new(0.5, 0, 0, 0)
+    statValue.BackgroundTransparency = 1
+    statValue.Text = stat.value
+    statValue.TextColor3 = Color3.fromRGB(0, 200, 255)
+    statValue.TextSize = 14
+    statValue.Font = Enum.Font.GothamBold
+    statValue.TextXAlignment = Enum.TextXAlignment.Right
+    statValue.Parent = statFrame
+end
+
+-- Tab switching
+tab1.MouseButton1Click:Connect(function()
+    page1.Visible = true
+    page2.Visible = false
+    tab1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    tab2.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+end)
+
+tab2.MouseButton1Click:Connect(function()
+    page1.Visible = false
+    page2.Visible = true
+    tab1.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    tab2.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+end)
+
+-- Set initial tab state
+tab1.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+
+print("[JETYX] JETYX FARMING loaded successfully!")
+print("[JETYX] Version 2.0 - Stealth Edition")
