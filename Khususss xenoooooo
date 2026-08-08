@@ -1,0 +1,617 @@
+-- Nama Script: GUNTOLSC - Fixed Execution & FPS Booster (Xeno Compatible)
+local Players = game:GetService("Players")
+local localPlayer = Players.LocalPlayer
+local playerGui = localPlayer:WaitForChild("PlayerGui")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local workspace = game:GetService("Workspace")
+local camera = workspace.CurrentCamera
+local lighting = game:GetService("Lighting")
+local terrain = workspace:FindFirstChildOfClass("Terrain")
+
+-- Membersihkan GUI lama jika sudah ada
+if playerGui:FindFirstChild("GUNTOLSC_Gui") then
+	playerGui.GUNTOLSC_Gui:Destroy()
+end
+if playerGui:FindFirstChild("GUNTOLSC_Key") then
+	playerGui.GUNTOLSC_Key:Destroy()
+end
+
+-- Forward declaration untuk fungsi utama
+local launchMainScript
+
+-- ==================== KEY SYSTEM ====================
+local correctKey = "JETSCIRPT"
+
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "GUNTOLSC_Key"
+keyGui.ResetOnSpawn = false
+keyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+keyGui.Parent = playerGui
+
+local keyFrame = Instance.new("Frame")
+keyFrame.Name = "KeyFrame"
+keyFrame.Size = UDim2.new(0, 320, 0, 180)
+keyFrame.Position = UDim2.new(0.5, -160, 0.5, -90)
+keyFrame.BackgroundColor3 = Color3.fromRGB(24, 18, 38)
+keyFrame.BorderSizePixel = 0
+keyFrame.Active = true
+keyFrame.Draggable = true
+keyFrame.Parent = keyGui
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 10)
+keyCorner.Parent = keyFrame
+
+local keyStroke = Instance.new("UIStroke")
+keyStroke.Color = Color3.fromRGB(110, 60, 180)
+keyStroke.Transparency = 0.4
+keyStroke.Thickness = 1.5
+keyStroke.Parent = keyFrame
+
+local keyHeader = Instance.new("Frame")
+keyHeader.Size = UDim2.new(1, 0, 0, 40)
+keyHeader.BackgroundColor3 = Color3.fromRGB(38, 26, 62)
+keyHeader.BorderSizePixel = 0
+keyHeader.Parent = keyFrame
+
+local keyHeaderCorner = Instance.new("UICorner")
+keyHeaderCorner.CornerRadius = UDim.new(0, 10)
+keyHeaderCorner.Parent = keyHeader
+
+local keyHeaderFix = Instance.new("Frame")
+keyHeaderFix.Size = UDim2.new(1, 0, 0, 10)
+keyHeaderFix.Position = UDim2.new(0, 0, 1, -10)
+keyHeaderFix.BackgroundColor3 = Color3.fromRGB(38, 26, 62)
+keyHeaderFix.BorderSizePixel = 0
+keyHeaderFix.Parent = keyHeader
+
+local keyTitle = Instance.new("TextLabel")
+keyTitle.Size = UDim2.new(1, 0, 1, 0)
+keyTitle.BackgroundTransparency = 1
+keyTitle.Text = "✨ GUNTOLSC • Authentication"
+keyTitle.TextColor3 = Color3.fromRGB(235, 215, 255)
+keyTitle.TextSize = 13
+keyTitle.Font = Enum.Font.GothamBold
+keyTitle.Parent = keyHeader
+
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(1, -40, 0, 42)
+textBox.Position = UDim2.new(0, 20, 0, 58)
+textBox.BackgroundColor3 = Color3.fromRGB(34, 25, 54)
+textBox.PlaceholderText = "Enter secure key..."
+textBox.Text = ""
+textBox.TextColor3 = Color3.fromRGB(240, 240, 255)
+textBox.PlaceholderColor3 = Color3.fromRGB(130, 110, 160)
+textBox.TextSize = 13
+textBox.Font = Enum.Font.Gotham
+textBox.Parent = keyFrame
+
+local tbCorner = Instance.new("UICorner")
+tbCorner.CornerRadius = UDim.new(0, 8)
+tbCorner.Parent = textBox
+
+local tbStroke = Instance.new("UIStroke")
+tbStroke.Color = Color3.fromRGB(75, 45, 125)
+tbStroke.Transparency = 0.5
+tbStroke.Parent = textBox
+
+local submitBtn = Instance.new("TextButton")
+submitBtn.Size = UDim2.new(1, -40, 0, 38)
+submitBtn.Position = UDim2.new(0, 20, 0, 118)
+submitBtn.BackgroundColor3 = Color3.fromRGB(115, 55, 215)
+submitBtn.Text = "VERIFY KEY"
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.TextSize = 13
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.Parent = keyFrame
+
+local sbCorner = Instance.new("UICorner")
+sbCorner.CornerRadius = UDim.new(0, 8)
+sbCorner.Parent = submitBtn
+
+submitBtn.MouseButton1Click:Connect(function()
+	if textBox.Text == correctKey then
+		launchMainScript()
+	else
+		textBox.Text = ""
+		textBox.PlaceholderText = "Invalid Key!"
+	end
+end)
+
+-- Fungsi Utama untuk Meluncurkan Menu Setelah Key Benar
+launchMainScript = function()
+	if keyGui then keyGui:Destroy() end
+
+	-- 1. Membuat ScreenGui Utama
+	local screenGui = Instance.new("ScreenGui")
+	screenGui.Name = "GUNTOLSC_Gui"
+	screenGui.ResetOnSpawn = false
+	screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screenGui.Parent = playerGui
+
+	-- 2. Membuat Main Window (Frame Utama)
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Name = "MainFrame"
+	mainFrame.Size = UDim2.new(0, 380, 0, 500)
+	mainFrame.Position = UDim2.new(0.5, -190, 0.5, -250)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(18, 13, 29)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = screenGui
+
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(0, 10)
+	uiCorner.Parent = mainFrame
+
+	local mainStroke = Instance.new("UIStroke")
+	mainStroke.Color = Color3.fromRGB(110, 55, 190)
+	mainStroke.Transparency = 0.35
+	mainStroke.Thickness = 1.5
+	mainStroke.Parent = mainFrame
+
+	-- 3. Membuat Bagian Header
+	local header = Instance.new("Frame")
+	header.Name = "Header"
+	header.Size = UDim2.new(1, 0, 0, 42)
+	header.BackgroundColor3 = Color3.fromRGB(38, 26, 62)
+	header.BorderSizePixel = 0
+	header.Parent = mainFrame
+
+	local headerCorner = Instance.new("UICorner")
+	headerCorner.CornerRadius = UDim.new(0, 10)
+	headerCorner.Parent = header
+
+	local headerFix = Instance.new("Frame")
+	headerFix.Size = UDim2.new(1, 0, 0, 10)
+	headerFix.Position = UDim2.new(0, 0, 1, -10)
+	headerFix.BackgroundColor3 = Color3.fromRGB(38, 26, 62)
+	headerFix.BorderSizePixel = 0
+	headerFix.Parent = header
+
+	local titleLabel = Instance.new("TextLabel")
+	titleLabel.Size = UDim2.new(1, -75, 1, 0)
+	titleLabel.Position = UDim2.new(0, 12, 0, 0)
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.Text = "⚡ GUNTOLSC • Hub"
+	titleLabel.TextColor3 = Color3.fromRGB(240, 220, 255)
+	titleLabel.TextSize = 13
+	titleLabel.Font = Enum.Font.GothamBold
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	titleLabel.Parent = header
+
+	-- Tombol Close (X)
+	local closeBtn = Instance.new("TextButton")
+	closeBtn.Size = UDim2.new(0, 28, 0, 28)
+	closeBtn.Position = UDim2.new(1, -34, 0, 7)
+	closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 80)
+	closeBtn.Text = "✕"
+	closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	closeBtn.TextSize = 12
+	closeBtn.Font = Enum.Font.GothamBold
+	closeBtn.Parent = header
+
+	local closeCorner = Instance.new("UICorner")
+	closeCorner.CornerRadius = UDim.new(0, 6)
+	closeCorner.Parent = closeBtn
+
+	closeBtn.MouseButton1Click:Connect(function()
+		screenGui:Destroy()
+	end)
+
+	-- Tombol Hide / Minimize
+	local hideBtn = Instance.new("TextButton")
+	hideBtn.Size = UDim2.new(0, 28, 0, 28)
+	hideBtn.Position = UDim2.new(1, -66, 0, 7)
+	hideBtn.BackgroundColor3 = Color3.fromRGB(90, 55, 155)
+	hideBtn.Text = "—"
+	hideBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	hideBtn.TextSize = 12
+	hideBtn.Font = Enum.Font.GothamBold
+	hideBtn.Parent = header
+
+	local hideCorner = Instance.new("UICorner")
+	hideCorner.CornerRadius = UDim.new(0, 6)
+	hideCorner.Parent = hideBtn
+
+	-- 4. Area Konten Menu
+	local contentBox = Instance.new("ScrollingFrame")
+	contentBox.Size = UDim2.new(1, -20, 1, -104)
+	contentBox.Position = UDim2.new(0, 10, 0, 50)
+	contentBox.BackgroundColor3 = Color3.fromRGB(14, 10, 22)
+	contentBox.BorderSizePixel = 0
+	contentBox.ScrollBarThickness = 4
+	contentBox.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 160)
+	contentBox.Parent = mainFrame
+
+	local contentCorner = Instance.new("UICorner")
+	contentCorner.CornerRadius = UDim.new(0, 6)
+	contentCorner.Parent = contentBox
+
+	local uiListLayout = Instance.new("UIListLayout")
+	uiListLayout.Parent = contentBox
+	uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	uiListLayout.Padding = UDim.new(0, 6)
+
+	-- Fungsi Pembuat Tombol Fitur
+	local function createFeatureButton(name, callback)
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(1, -8, 0, 38)
+		btn.BackgroundColor3 = Color3.fromRGB(25, 18, 40)
+		btn.Text = "    [ OFF ]  " .. name
+		btn.TextColor3 = Color3.fromRGB(175, 145, 200)
+		btn.TextSize, btn.Font = 12, Enum.Font.GothamMedium
+		btn.TextXAlignment = Enum.TextXAlignment.Left
+		btn.Parent = contentBox
+		
+		local corner = Instance.new("UICorner")
+		corner.CornerRadius = UDim.new(0, 6)
+		corner.Parent = btn
+
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = Color3.fromRGB(55, 38, 90)
+		stroke.Transparency = 0.5
+		stroke.Parent = btn
+		
+		local active = false
+		btn.MouseButton1Click:Connect(function()
+			active = not active
+			if active then
+				btn.Text = "    [  ON  ]  " .. name
+				btn.TextColor3 = Color3.fromRGB(180, 255, 140)
+				stroke.Color = Color3.fromRGB(80, 180, 80)
+			else
+				btn.Text = "    [ OFF ]  " .. name
+				btn.TextColor3 = Color3.fromRGB(175, 145, 200)
+				stroke.Color = Color3.fromRGB(55, 38, 90)
+			end
+			callback(active)
+		end)
+	end
+
+	-- Fungsi Pembuat Label Kategori
+	local function createCategoryLabel(text)
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, -8, 0, 24)
+		label.BackgroundTransparency = 1
+		label.Text = "  " .. text
+		label.TextColor3 = Color3.fromRGB(160, 120, 220)
+		label.TextSize, label.Font = 11, Enum.Font.GothamBold
+		label.TextXAlignment = Enum.TextXAlignment.Left
+		label.Parent = contentBox
+	end
+
+	local function createSpacer(height)
+		local spacer = Instance.new("Frame")
+		spacer.Size = UDim2.new(1, -8, 0, height or 8)
+		spacer.BackgroundTransparency = 1
+		spacer.Parent = contentBox
+	end
+
+	-- 5. Tombol Bawah Status
+	local bottomBtn = Instance.new("TextButton")
+	bottomBtn.Size = UDim2.new(1, -20, 0, 36)
+	bottomBtn.Position = UDim2.new(0, 10, 1, -44)
+	bottomBtn.BackgroundColor3 = Color3.fromRGB(28, 20, 46)
+	bottomBtn.Text = "✨ SYSTEM STATUS: ONLINE"
+	bottomBtn.TextColor3 = Color3.fromRGB(210, 180, 255)
+	bottomBtn.TextSize = 12
+	bottomBtn.Font = Enum.Font.GothamBold
+	bottomBtn.Parent = mainFrame
+
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 8)
+	btnCorner.Parent = bottomBtn
+
+	local bottomStroke = Instance.new("UIStroke")
+	bottomStroke.Color = Color3.fromRGB(85, 45, 150)
+	bottomStroke.Transparency = 0.4
+	bottomStroke.Parent = bottomBtn
+
+	local isMinimized = false
+	hideBtn.MouseButton1Click:Connect(function()
+		isMinimized = not isMinimized
+		if isMinimized then
+			contentBox.Visible = false
+			bottomBtn.Visible = false
+			mainFrame.Size = UDim2.new(0, 380, 0, 42)
+			hideBtn.Text = "+"
+		else
+			contentBox.Visible = true
+			bottomBtn.Visible = true
+			mainFrame.Size = UDim2.new(0, 380, 0, 500)
+			hideBtn.Text = "—"
+		end
+	end)
+
+	-- ==================== TELEPORT FEATURES ====================
+	createCategoryLabel("• TELEPORTATION MENU")
+
+	local function executeTeleport(targetPos, buttonInstance, defaultText)
+		buttonInstance.Text = "Teleporting..."
+		
+		if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+			localPlayer.Character.Humanoid.Health = 0
+		end
+
+		local character = localPlayer.CharacterAdded:Wait()
+		local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+		task.wait(0.3)
+
+		for _, part in ipairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = false
+			end
+		end
+
+		humanoidRootPart.CFrame = CFrame.new(targetPos)
+
+		task.wait(0.2)
+		for _, part in ipairs(character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.CanCollide = true
+			end
+		end
+
+		buttonInstance.Text = defaultText
+	end
+
+	local btnGSMid = Instance.new("TextButton")
+	btnGSMid.Size = UDim2.new(1, -8, 0, 35)
+	btnGSMid.BackgroundColor3 = Color3.fromRGB(24, 17, 39)
+	btnGSMid.TextColor3 = Color3.fromRGB(220, 205, 245)
+	btnGSMid.Text = "Teleport GS Mid"
+	btnGSMid.TextSize = 12
+	btnGSMid.Font = Enum.Font.GothamMedium
+	btnGSMid.Parent = contentBox
+
+	local cBtn1 = Instance.new("UICorner")
+	cBtn1.CornerRadius = UDim.new(0, 6)
+	cBtn1.Parent = btnGSMid
+
+	local sBtn1 = Instance.new("UIStroke")
+	sBtn1.Color = Color3.fromRGB(55, 38, 90)
+	sBtn1.Transparency = 0.5
+	sBtn1.Parent = btnGSMid
+
+	btnGSMid.MouseButton1Click:Connect(function()
+		executeTeleport(Vector3.new(220, 17, -160), btnGSMid, "Teleport GS Mid")
+	end)
+
+	local btnDealer = Instance.new("TextButton")
+	btnDealer.Size = UDim2.new(1, -8, 0, 35)
+	btnDealer.BackgroundColor3 = Color3.fromRGB(24, 17, 39)
+	btnDealer.TextColor3 = Color3.fromRGB(220, 205, 245)
+	btnDealer.Text = "Dealer Ship"
+	btnDealer.TextSize = 12
+	btnDealer.Font = Enum.Font.GothamMedium
+	btnDealer.Parent = contentBox
+
+	local cBtn2 = Instance.new("UICorner")
+	cBtn2.CornerRadius = UDim.new(0, 6)
+	cBtn2.Parent = btnDealer
+
+	local sBtn2 = Instance.new("UIStroke")
+	sBtn2.Color = Color3.fromRGB(55, 38, 90)
+	sBtn2.Transparency = 0.5
+	sBtn2.Parent = btnDealer
+
+	btnDealer.MouseButton1Click:Connect(function()
+		executeTeleport(Vector3.new(730, 10, 410), btnDealer, "Dealer Ship")
+	end)
+
+	createSpacer(6)
+
+	-- ==================== FPS BOOSTER FEATURES ====================
+	createCategoryLabel("• PERFORMANCE & FPS BOOSTER")
+
+	createFeatureButton("⚡ Extreme FPS Booster", function(state)
+		if state then
+			pcall(function()
+				settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+			end)
+			lighting.GlobalShadows = false
+			lighting.Brightness = 2
+			if terrain then
+				terrain.WaterWaveSize = 0
+				terrain.WaterWaveSpeed = 0
+				terrain.WaterTransparency = 0
+				terrain.WaterReflectance = 0
+			end
+			for _, v in ipairs(workspace:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.Material = Enum.Material.SmoothPlastic
+					v.Reflectance = 0
+				elseif v:IsA("Decal") or v:IsA("Texture") then
+					v.Transparency = 1
+				elseif v:IsA("ParticleEmitter") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+					v.Enabled = false
+				end
+			end
+		else
+			pcall(function()
+				settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+			end)
+			lighting.GlobalShadows = true
+		end
+	end)
+
+	createSpacer(6)
+
+	-- ==================== AIMBOT FEATURES ====================
+	createCategoryLabel("• AIMBOT & SETTINGS")
+
+	local aimbotEnabled = false
+	local aimbotMode = "PC"
+	local aimbotFov = 100
+
+	createFeatureButton("🎯 Aimbot", function(state) aimbotEnabled = state end)
+
+	local modeBtn = Instance.new("TextButton")
+	modeBtn.Size = UDim2.new(1, -8, 0, 35)
+	modeBtn.BackgroundColor3 = Color3.fromRGB(24, 17, 39)
+	modeBtn.TextColor3 = Color3.fromRGB(220, 205, 245)
+	modeBtn.Text = "Aimbot Mode: [ PC (Hold RMB) ]"
+	modeBtn.TextSize = 12
+	modeBtn.Font = Enum.Font.GothamMedium
+	modeBtn.Parent = contentBox
+
+	local cBtnMode = Instance.new("UICorner")
+	cBtnMode.CornerRadius = UDim.new(0, 6)
+	cBtnMode.Parent = modeBtn
+
+	local sBtnMode = Instance.new("UIStroke")
+	sBtnMode.Color = Color3.fromRGB(55, 38, 90)
+	sBtnMode.Transparency = 0.5
+	sBtnMode.Parent = modeBtn
+
+	modeBtn.MouseButton1Click:Connect(function()
+		if aimbotMode == "PC" then
+			aimbotMode = "Mobile"
+			modeBtn.Text = "Aimbot Mode: [ Mobile (Always / Auto) ]"
+		else
+			aimbotMode = "PC"
+			modeBtn.Text = "Aimbot Mode: [ PC (Hold RMB) ]"
+		end
+	end)
+
+	-- Aman untuk Drawing Library Xeno
+	local fovCircle = nil
+	pcall(function()
+		if Drawing then
+			fovCircle = Drawing.new("Circle")
+			fovCircle.Thickness = 1.5
+			fovCircle.NumSides = 64
+			fovCircle.Filled = false
+			fovCircle.Color = Color3.fromRGB(180, 100, 255)
+			fovCircle.Visible = false
+		end
+	end)
+
+	local fovContainer = Instance.new("Frame")
+	fovContainer.Size = UDim2.new(1, -8, 0, 46)
+	fovContainer.BackgroundColor3 = Color3.fromRGB(22, 16, 36)
+	fovContainer.Parent = contentBox
+
+	local fovCorner = Instance.new("UICorner")
+	fovCorner.CornerRadius = UDim.new(0, 6)
+	fovCorner.Parent = fovContainer
+
+	local fovStroke = Instance.new("UIStroke")
+	fovStroke.Color = Color3.fromRGB(55, 38, 90)
+	fovStroke.Transparency = 0.5
+	fovStroke.Parent = fovContainer
+
+	local fovLabel = Instance.new("TextLabel")
+	fovLabel.Size = UDim2.new(1, -16, 0, 20)
+	fovLabel.Position = UDim2.new(0, 8, 0, 3)
+	fovLabel.BackgroundTransparency = 1
+	fovLabel.Text = "Aimbot FOV: " .. aimbotFov
+	fovLabel.TextColor3 = Color3.fromRGB(210, 195, 235)
+	fovLabel.TextSize, fovLabel.Font = 11, Enum.Font.GothamBold
+	fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+	fovLabel.Parent = fovContainer
+
+	local fovSliderBg = Instance.new("Frame")
+	fovSliderBg.Size = UDim2.new(1, -16, 0, 6)
+	fovSliderBg.Position = UDim2.new(0, 8, 0, 28)
+	fovSliderBg.BackgroundColor3 = Color3.fromRGB(35, 25, 55)
+	fovSliderBg.BorderSizePixel = 0
+	fovSliderBg.Parent = fovContainer
+
+	local fovSliderBgCorner = Instance.new("UICorner")
+	fovSliderBgCorner.CornerRadius = UDim.new(1, 0)
+	fovSliderBgCorner.Parent = fovSliderBg
+
+	local fovSliderFill = Instance.new("Frame")
+	fovSliderFill.Size = UDim2.new((aimbotFov - 20) / 180, 0, 1, 0)
+	fovSliderFill.BackgroundColor3 = Color3.fromRGB(130, 70, 220)
+	fovSliderFill.BorderSizePixel = 0
+	fovSliderFill.Parent = fovSliderBg
+
+	local fovSliderFillCorner = Instance.new("UICorner")
+	fovSliderFillCorner.CornerRadius = UDim.new(1, 0)
+	fovSliderFillCorner.Parent = fovSliderFill
+
+	local draggingFov = false
+	fovSliderBg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingFov = true
+		end
+	end)
+
+	userInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingFov = false
+		end
+	end)
+
+	userInputService.InputChanged:Connect(function(input)
+		if draggingFov and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			local mousePos = userInputService:GetMouseLocation()
+			local absPos = fovSliderBg.AbsolutePosition
+			local absSize = fovSliderBg.AbsoluteSize
+			local scale = math.clamp((mousePos.X - absPos.X) / absSize.X, 0, 1)
+			aimbotFov = math.floor(20 + (scale * 180))
+			fovLabel.Text = "Aimbot FOV: " .. aimbotFov
+			fovSliderFill.Size = UDim2.new(scale, 0, 1, 0)
+			if fovCircle then
+				fovCircle.Radius = aimbotFov
+			end
+		end
+	end)
+
+	createSpacer(6)
+
+	-- ==================== ESP FEATURES ====================
+	createCategoryLabel("• ESP & SETTINGS")
+
+	local espBoxEnabled = false
+	local espSkeletonEnabled = false
+	local espNameEnabled = false
+	local espHealthEnabled = false
+	local espInventoryEnabled = false
+	local espMaxDistance = 1000
+
+	createFeatureButton("📦 Box ESP", function(state) espBoxEnabled = state end)
+	createFeatureButton("🦴 Skeleton ESP", function(state) espSkeletonEnabled = state end)
+	createFeatureButton("👤 Name ESP", function(state) espNameEnabled = state end)
+	createFeatureButton("❤️ Health ESP", function(state) espHealthEnabled = state end)
+	createFeatureButton("🎒 Inventory ESP", function(state) espInventoryEnabled = state end)
+
+	local distContainer = Instance.new("Frame")
+	distContainer.Size = UDim2.new(1, -8, 0, 46)
+	distContainer.BackgroundColor3 = Color3.fromRGB(22, 16, 36)
+	distContainer.Parent = contentBox
+
+	local distCorner = Instance.new("UICorner")
+	distCorner.CornerRadius = UDim.new(0, 6)
+	distCorner.Parent = distContainer
+
+	local distStroke = Instance.new("UIStroke")
+	distStroke.Color = Color3.fromRGB(55, 38, 90)
+	distStroke.Transparency = 0.5
+	distStroke.Parent = distContainer
+
+	local distLabel = Instance.new("TextLabel")
+	distLabel.Size = UDim2.new(1, -16, 0, 20)
+	distLabel.Position = UDim2.new(0, 8, 0, 3)
+	distLabel.BackgroundTransparency = 1
+	distLabel.Text = "Max Distance: " .. espMaxDistance .. " studs"
+	distLabel.TextColor3 = Color3.fromRGB(210, 195, 235)
+	distLabel.TextSize, distLabel.Font = 11, Enum.Font.GothamBold
+	distLabel.TextXAlignment = Enum.TextXAlignment.Left
+	distLabel.Parent = distContainer
+
+	local distSliderBg = Instance.new("Frame")
+	distSliderBg.Size = UDim2.new(1, -16, 0, 6)
+	distSliderBg.Position = UDim2.new(0, 8, 0, 28)
+	distSliderBg.BackgroundColor3 = Color3.fromRGB(35, 25, 55)
+	distSliderBg.BorderSizePixel = 0
+	distSliderBg.Parent = distContainer
+
+	local distSliderBgCorner = Instance.new("UICorner")
+	distSliderBgCorner.CornerRadius = UDim.new(1, 0)
+	distSliderBgCorner.Parent = distSl
