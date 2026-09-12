@@ -1,0 +1,305 @@
+-- // HnxFPS (Optimized Anti-Lag: Clean Gray Style ala Gambar) \\ --
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HnxFPSGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = game.CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+
+-- 1. Main Window (HnxFPS)
+local MainWindow = Instance.new("Frame")
+MainWindow.Name = "MainWindow"
+MainWindow.Size = UDim2.new(0, 260, 0, 110)
+MainWindow.Position = UDim2.new(0.5, -280, 0.5, -60)
+MainWindow.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+MainWindow.BorderSizePixel = 0
+MainWindow.Active = true
+MainWindow.Draggable = true
+MainWindow.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainWindow
+
+local TitleMain = Instance.new("TextLabel")
+TitleMain.Size = UDim2.new(0, 160, 0, 30)
+TitleMain.Position = UDim2.new(0, 10, 0, 8)
+TitleMain.BackgroundTransparency = 1
+TitleMain.Font = Enum.Font.SourceSansBold
+TitleMain.Text = "HnxFPS"
+TitleMain.TextColor3 = Color3.fromRGB(30, 30, 30)
+TitleMain.TextSize = 16
+TitleMain.TextXAlignment = Enum.TextXAlignment.Left
+TitleMain.Parent = MainWindow
+
+-- Settings Button in Main Window
+local SettingsBtn = Instance.new("TextButton")
+SettingsBtn.Size = UDim2.new(0, 25, 0, 25)
+SettingsBtn.Position = UDim2.new(0, 185, 0, 10)
+SettingsBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+SettingsBtn.Text = "⚙"
+SettingsBtn.TextColor3 = Color3.fromRGB(30, 30, 30)
+SettingsBtn.TextSize = 14
+SettingsBtn.Parent = MainWindow
+Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(0, 6)
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(0, 220, 0, 10)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(30, 30, 30)
+CloseBtn.TextSize = 14
+CloseBtn.Parent = MainWindow
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+-- Anti-Lag Label & Toggle (Main)
+local AntiLagLabel = Instance.new("TextLabel")
+AntiLagLabel.Size = UDim2.new(0, 100, 0, 30)
+AntiLagLabel.Position = UDim2.new(0, 15, 0, 55)
+AntiLagLabel.BackgroundTransparency = 1
+AntiLagLabel.Font = Enum.Font.SourceSansSemibold
+AntiLagLabel.Text = "Anti-Lag"
+AntiLagLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
+AntiLagLabel.TextSize = 16
+AntiLagLabel.TextXAlignment = Enum.TextXAlignment.Left
+AntiLagLabel.Parent = MainWindow
+
+local AntiLagToggleBg = Instance.new("TextButton")
+AntiLagToggleBg.Size = UDim2.new(0, 45, 0, 24)
+AntiLagToggleBg.Position = UDim2.new(0, 195, 0, 58)
+AntiLagToggleBg.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+AntiLagToggleBg.Text = ""
+AntiLagToggleBg.Parent = MainWindow
+Instance.new("UICorner", AntiLagToggleBg).CornerRadius = UDim.new(1, 0)
+
+local AntiLagToggleCircle = Instance.new("Frame")
+AntiLagToggleCircle.Size = UDim2.new(0, 20, 0, 20)
+AntiLagToggleCircle.Position = UDim2.new(0, 2, 0, 2)
+AntiLagToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+AntiLagToggleCircle.Parent = AntiLagToggleBg
+Instance.new("UICorner", AntiLagToggleCircle).CornerRadius = UDim.new(1, 0)
+
+
+-- 2. Configurações Window (Sub-menu)
+local ConfigWindow = Instance.new("Frame")
+ConfigWindow.Name = "ConfigWindow"
+ConfigWindow.Size = UDim2.new(0, 230, 0, 195)
+ConfigWindow.Position = UDim2.new(0.5, -15, 0.5, -60)
+ConfigWindow.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+ConfigWindow.BorderSizePixel = 0
+ConfigWindow.Active = true
+ConfigWindow.Draggable = true
+ConfigWindow.Visible = false
+ConfigWindow.Parent = ScreenGui
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 10)
+ConfigCorner.Parent = ConfigWindow
+
+local TitleConfig = Instance.new("TextLabel")
+TitleConfig.Size = UDim2.new(0, 200, 0, 30)
+TitleConfig.Position = UDim2.new(0, 15, 0, 8)
+TitleConfig.BackgroundTransparency = 1
+TitleConfig.Font = Enum.Font.SourceSansBold
+TitleConfig.Text = "Configurações"
+TitleConfig.TextColor3 = Color3.fromRGB(30, 30, 30)
+TitleConfig.TextSize = 15
+TitleConfig.TextXAlignment = Enum.TextXAlignment.Center
+TitleConfig.Parent = ConfigWindow
+
+-- Function to create feature toggle rows
+local function createToggle(name, text, yPos)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0, 140, 0, 25)
+	label.Position = UDim2.new(0, 15, 0, yPos)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.SourceSansSemibold
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(30, 30, 30)
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = ConfigWindow
+
+	local tBg = Instance.new("TextButton")
+	tBg.Name = name
+	tBg.Size = UDim2.new(0, 40, 0, 22)
+	tBg.Position = UDim2.new(0, 170, 0, yPos + 2)
+	tBg.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+	tBg.Text = ""
+	tBg.Parent = ConfigWindow
+	Instance.new("UICorner", tBg).CornerRadius = UDim.new(1, 0)
+
+	local tCircle = Instance.new("Frame")
+	tCircle.Size = UDim2.new(0, 18, 0, 18)
+	tCircle.Position = UDim2.new(0, 2, 0, 2)
+	tCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	tCircle.Parent = tBg
+	Instance.new("UICorner", tCircle).CornerRadius = UDim.new(1, 0)
+
+	return tBg, tCircle
+end
+
+local remAccBtn, remAccCir = createToggle("RemAcc", "Remover Acessorios", 45)
+local remClotBtn, remClotCir = createToggle("RemClot", "Remover Roupas", 80)
+local fpsBtn, fpsCir = createToggle("FPS", "Contador de FPS", 115)
+local stretchBtn, stretchCir = createToggle("Stretch", "Stretch Camera", 150)
+
+
+-- // LOGIC & FEATURES IMPLEMENTATION \\ --
+
+-- Toggle UI Animation Helper
+local function toggleState(btn, circle, state)
+	if state then
+		game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 200, 120)}):Play()
+		game:GetService("TweenService"):Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(0, 18, 0, 2)}):Play()
+	else
+		game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(180, 180, 180)}):Play()
+		game:GetService("TweenService"):Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2)}):Play()
+	end
+end
+
+-- 1. Anti-Lag Logic
+local antiLagActive = false
+AntiLagToggleBg.MouseButton1Click:Connect(function()
+	antiLagActive = not antiLagActive
+	toggleState(AntiLagToggleBg, AntiLagToggleCircle, antiLagActive)
+	
+	if antiLagActive then
+		Lighting.GlobalShadows = false
+		Lighting.Brightness = 1.2
+		Lighting.ClockTime = 0 
+		Lighting.OutdoorAmbient = Color3.fromRGB(80, 80, 80)
+		Lighting.Ambient = Color3.fromRGB(60, 60, 60)
+		
+		for _, v in pairs(Lighting:GetChildren()) do
+			if v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then
+				v:Destroy()
+			end
+		end
+
+		for _, v in pairs(Workspace:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CastShadow = false
+				v.Material = Enum.Material.SmoothPlastic
+				v.Color = Color3.fromRGB(100, 100, 100)
+				
+				for _, child in pairs(v:GetChildren()) do
+					if child:IsA("Texture") or child:IsA("Decal") then
+						child:Destroy()
+					end
+				end
+			elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+				v.Enabled = false
+			end
+		end
+	else
+		Lighting.GlobalShadows = true
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 14
+		Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+		Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+	end
+end)
+
+-- Open/Close Config Panel
+SettingsBtn.MouseButton1Click:Connect(function()
+	ConfigWindow.Visible = not ConfigWindow.Visible
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- 2. Remover Acessórios
+local remAccActive = false
+remAccBtn.MouseButton1Click:Connect(function()
+	remAccActive = not remAccActive
+	toggleState(remAccBtn, remAccCir, remAccActive)
+	
+	if remAccActive then
+		for _, char in pairs(Workspace:GetChildren()) do
+			if char:FindFirstChildOfClass("Humanoid") then
+				for _, v in pairs(char:GetChildren()) do
+					if v:IsA("Accessory") then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- 3. Remover Roupas
+local remClotActive = false
+remClotBtn.MouseButton1Click:Connect(function()
+    remClotActive = not remClotActive
+    toggleState(remClotBtn, remClotCir, remClotActive)
+    
+    if remClotActive then
+        for _, char in pairs(Workspace:GetChildren()) do
+            if char:FindFirstChildOfClass("Humanoid") then
+                for _, v in pairs(char:GetChildren()) do
+                    if v:IsA("Clothing") or v:IsA("ShirtGraphic") then
+                        v:Destroy()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 4. Contador de FPS (Fixed)
+local fpsActive = false
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.Size = UDim2.new(0, 100, 0, 30)
+fpsLabel.Position = UDim2.new(0, 10, 0, 10)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.Font = Enum.Font.SourceSansBold
+fpsLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+fpsLabel.TextSize = 18
+fpsLabel.Visible = false
+fpsLabel.Parent = ScreenGui
+
+local lastUpdate = tick()
+local frameCount = 0
+
+RunService.RenderStepped:Connect(function()
+	if fpsActive then
+		frameCount = frameCount + 1
+		local now = tick()
+		if now - lastUpdate >= 1 then
+			fpsLabel.Text = "FPS: " .. math.floor(frameCount / (now - lastUpdate))
+			frameCount = 0
+			lastUpdate = now
+		end
+	end
+end)
+
+fpsBtn.MouseButton1Click:Connect(function()
+	fpsActive = not fpsActive
+	toggleState(fpsBtn, fpsCir, fpsActive)
+	fpsLabel.Visible = fpsActive
+end)
+
+-- 5. Stretch Camera
+local stretchActive = false
+local cam = Workspace.CurrentCamera
+stretchBtn.MouseButton1Click:Connect(function()
+	stretchActive = not stretchActive
+	toggleState(stretchBtn, stretchCir, stretchActive)
+	
+	if stretchActive then
+		cam.FieldOfView = 95
+	else
+		cam.FieldOfView = 70
+	end
+end)
