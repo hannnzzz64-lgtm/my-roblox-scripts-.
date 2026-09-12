@@ -1,0 +1,540 @@
+-- // HnxFPS (Optimized Anti-Lag, Darker Sky & Fixed Execute Bug) \\ --
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "HnxFPSGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = game.CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+
+-- 1. Main Window (HnxFPS)
+local MainWindow = Instance.new("Frame")
+MainWindow.Name = "MainWindow"
+MainWindow.Size = UDim2.new(0, 260, 0, 110)
+MainWindow.Position = UDim2.new(0.5, -280, 0.5, -60)
+MainWindow.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+MainWindow.BorderSizePixel = 0
+MainWindow.Active = true
+MainWindow.Draggable = true
+MainWindow.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainWindow
+
+-- Rainbow Stroke untuk Main Window
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Thickness = 2
+MainStroke.Parent = MainWindow
+
+local TitleMain = Instance.new("TextLabel")
+TitleMain.Size = UDim2.new(0, 160, 0, 30)
+TitleMain.Position = UDim2.new(0, 10, 0, 8)
+TitleMain.BackgroundTransparency = 1
+TitleMain.Font = Enum.Font.SourceSansBold
+TitleMain.Text = "HnxFPS"
+TitleMain.TextColor3 = Color3.fromRGB(30, 30, 30)
+TitleMain.TextSize = 16
+TitleMain.TextXAlignment = Enum.TextXAlignment.Left
+TitleMain.Parent = MainWindow
+
+-- Settings Button in Main Window
+local SettingsBtn = Instance.new("TextButton")
+SettingsBtn.Size = UDim2.new(0, 25, 0, 25)
+SettingsBtn.Position = UDim2.new(0, 185, 0, 10)
+SettingsBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+SettingsBtn.Text = "⚙"
+SettingsBtn.TextColor3 = Color3.fromRGB(30, 30, 30)
+SettingsBtn.TextSize = 14
+SettingsBtn.Parent = MainWindow
+Instance.new("UICorner", SettingsBtn).CornerRadius = UDim.new(0, 6)
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(0, 220, 0, 10)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(30, 30, 30)
+CloseBtn.TextSize = 14
+CloseBtn.Parent = MainWindow
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+-- Anti-Lag Label & Toggle (Main)
+local AntiLagLabel = Instance.new("TextLabel")
+AntiLagLabel.Size = UDim2.new(0, 100, 0, 30)
+AntiLagLabel.Position = UDim2.new(0, 15, 0, 55)
+AntiLagLabel.BackgroundTransparency = 1
+AntiLagLabel.Font = Enum.Font.SourceSansSemibold
+AntiLagLabel.Text = "Anti-Lag"
+AntiLagLabel.TextColor3 = Color3.fromRGB(30, 30, 30)
+AntiLagLabel.TextSize = 16
+AntiLagLabel.TextXAlignment = Enum.TextXAlignment.Left
+AntiLagLabel.Parent = MainWindow
+
+local AntiLagToggleBg = Instance.new("TextButton")
+AntiLagToggleBg.Size = UDim2.new(0, 45, 0, 24)
+AntiLagToggleBg.Position = UDim2.new(0, 195, 0, 58)
+AntiLagToggleBg.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+AntiLagToggleBg.Text = ""
+AntiLagToggleBg.Parent = MainWindow
+Instance.new("UICorner", AntiLagToggleBg).CornerRadius = UDim.new(1, 0)
+
+local AntiLagToggleCircle = Instance.new("Frame")
+AntiLagToggleCircle.Size = UDim2.new(0, 20, 0, 20)
+AntiLagToggleCircle.Position = UDim2.new(0, 2, 0, 2)
+AntiLagToggleCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+AntiLagToggleCircle.Parent = AntiLagToggleBg
+Instance.new("UICorner", AntiLagToggleCircle).CornerRadius = UDim.new(1, 0)
+
+
+-- 2. Configurações Window (Sub-menu)
+local ConfigWindow = Instance.new("Frame")
+ConfigWindow.Name = "ConfigWindow"
+ConfigWindow.Size = UDim2.new(0, 230, 0, 380)
+ConfigWindow.Position = UDim2.new(0.5, -15, 0.5, -60)
+ConfigWindow.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
+ConfigWindow.BorderSizePixel = 0
+ConfigWindow.Active = true
+ConfigWindow.Draggable = true
+ConfigWindow.Visible = false
+ConfigWindow.Parent = ScreenGui
+
+local ConfigCorner = Instance.new("UICorner")
+ConfigCorner.CornerRadius = UDim.new(0, 10)
+ConfigCorner.Parent = ConfigWindow
+
+-- Rainbow Stroke untuk Config Window
+local ConfigStroke = Instance.new("UIStroke")
+ConfigStroke.Thickness = 2
+ConfigStroke.Parent = ConfigWindow
+
+local TitleConfig = Instance.new("TextLabel")
+TitleConfig.Size = UDim2.new(0, 200, 0, 30)
+TitleConfig.Position = UDim2.new(0, 15, 0, 8)
+TitleConfig.BackgroundTransparency = 1
+TitleConfig.Font = Enum.Font.SourceSansBold
+TitleConfig.Text = "Configurações"
+TitleConfig.TextColor3 = Color3.fromRGB(30, 30, 30)
+TitleConfig.TextSize = 15
+TitleConfig.TextXAlignment = Enum.TextXAlignment.Center
+TitleConfig.Parent = ConfigWindow
+
+-- Function to create feature toggle rows
+local function createToggle(name, text, yPos)
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(0, 140, 0, 25)
+	label.Position = UDim2.new(0, 15, 0, yPos)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.SourceSansSemibold
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(30, 30, 30)
+	label.TextSize = 14
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = ConfigWindow
+
+	local tBg = Instance.new("TextButton")
+	tBg.Name = name
+	tBg.Size = UDim2.new(0, 40, 0, 22)
+	tBg.Position = UDim2.new(0, 170, 0, yPos + 2)
+	tBg.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+	tBg.Text = ""
+	tBg.Parent = ConfigWindow
+	Instance.new("UICorner", tBg).CornerRadius = UDim.new(1, 0)
+
+	local tCircle = Instance.new("Frame")
+	tCircle.Size = UDim2.new(0, 18, 0, 18)
+	tCircle.Position = UDim2.new(0, 2, 0, 2)
+	tCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	tCircle.Parent = tBg
+	Instance.new("UICorner", tCircle).CornerRadius = UDim.new(1, 0)
+
+	return tBg, tCircle
+end
+
+local remAccBtn, remAccCir = createToggle("RemAcc", "Remover Acessorios", 45)
+local remClotBtn, remClotCir = createToggle("RemClot", "Remover Roupas", 80)
+local fpsBtn, fpsCir = createToggle("FPS", "Contador de FPS", 115)
+local stretchBtn, stretchCir = createToggle("Stretch", "Stretch Camera", 150)
+local rainbowNameBtn, rainbowNameCir = createToggle("RainbowName", "Rainbow Name", 185)
+
+
+-- // CONFIG SYSTEM UI & CUSTOM NAME \\ --
+local ConfigLabelTitle = Instance.new("TextLabel")
+ConfigLabelTitle.Size = UDim2.new(0, 200, 0, 20)
+ConfigLabelTitle.Position = UDim2.new(0, 15, 0, 215)
+ConfigLabelTitle.BackgroundTransparency = 1
+ConfigLabelTitle.Font = Enum.Font.SourceSansBold
+ConfigLabelTitle.Text = "Custom Config Name:"
+ConfigLabelTitle.TextColor3 = Color3.fromRGB(30, 30, 30)
+ConfigLabelTitle.TextSize = 13
+ConfigLabelTitle.TextXAlignment = Enum.TextXAlignment.Left
+ConfigLabelTitle.Parent = ConfigWindow
+
+local ConfigNameBox = Instance.new("TextBox")
+ConfigNameBox.Size = UDim2.new(0, 200, 0, 25)
+ConfigNameBox.Position = UDim2.new(0, 15, 0, 237)
+ConfigNameBox.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+ConfigNameBox.PlaceholderText = "Ketik nama config..."
+ConfigNameBox.Text = ""
+ConfigNameBox.TextColor3 = Color3.fromRGB(30, 30, 30)
+ConfigNameBox.Font = Enum.Font.SourceSans
+ConfigNameBox.TextSize = 14
+ConfigNameBox.Parent = ConfigWindow
+Instance.new("UICorner", ConfigNameBox).CornerRadius = UDim.new(0, 6)
+
+-- Create Config Button
+local CreateConfigBtn = Instance.new("TextButton")
+CreateConfigBtn.Size = UDim2.new(0, 95, 0, 25)
+CreateConfigBtn.Position = UDim2.new(0, 15, 0, 268)
+CreateConfigBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 220)
+CreateConfigBtn.Font = Enum.Font.SourceSansBold
+CreateConfigBtn.Text = "Create Config"
+CreateConfigBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreateConfigBtn.TextSize = 13
+CreateConfigBtn.Parent = ConfigWindow
+Instance.new("UICorner", CreateConfigBtn).CornerRadius = UDim.new(0, 6)
+
+-- Load Config Button
+local LoadConfigBtn = Instance.new("TextButton")
+LoadConfigBtn.Size = UDim2.new(0, 95, 0, 25)
+LoadConfigBtn.Position = UDim2.new(0, 120, 0, 268)
+LoadConfigBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 120)
+LoadConfigBtn.Font = Enum.Font.SourceSansBold
+LoadConfigBtn.Text = "Load Config"
+LoadConfigBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadConfigBtn.TextSize = 13
+LoadConfigBtn.Parent = ConfigWindow
+Instance.new("UICorner", LoadConfigBtn).CornerRadius = UDim.new(0, 6)
+
+-- Status / Confirm Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0, 200, 0, 25)
+StatusLabel.Position = UDim2.new(0, 15, 0, 298)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Font = Enum.Font.SourceSansItalic
+StatusLabel.Text = "Status: Menunggu..."
+StatusLabel.TextColor3 = Color3.fromRGB(60, 60, 60)
+StatusLabel.TextSize = 12
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+StatusLabel.Parent = ConfigWindow
+
+
+-- // LOGIC & FEATURES IMPLEMENTATION \\ --
+
+-- Fungsi Animasi Pelangi (Rainbow) untuk Outline UI secara Real-Time
+RunService.RenderStepped:Connect(function()
+	local hue = (tick() % 5) / 5
+	local rainbowColor = Color3.fromHSV(hue, 1, 1)
+	
+	MainStroke.Color = rainbowColor
+	ConfigStroke.Color = rainbowColor
+end)
+
+local function toggleState(btn, circle, state)
+	if state then
+		game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 200, 120)}):Play()
+		game:GetService("TweenService"):Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(0, 18, 0, 2)}):Play()
+	else
+		game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(180, 180, 180)}):Play()
+		game:GetService("TweenService"):Create(circle, TweenInfo.new(0.2), {Position = UDim2.new(0, 2, 0, 2)}):Play()
+	end
+end
+
+local antiLagActive = false
+local remAccActive = false
+local remClotActive = false
+local fpsActive = false
+local stretchActive = false
+local rainbowNameActive = false
+
+-- 1. Anti-Lag Logic (Langit dibuat jauh lebih gelap / malam hari redup)
+AntiLagToggleBg.MouseButton1Click:Connect(function()
+	antiLagActive = not antiLagActive
+	toggleState(AntiLagToggleBg, AntiLagToggleCircle, antiLagActive)
+	
+	if antiLagActive then
+		Lighting.GlobalShadows = false
+		Lighting.Brightness = 0.5
+		Lighting.ClockTime = 0 -- Mengubah waktu ke tengah malam agar langit gelap total
+		Lighting.OutdoorAmbient = Color3.fromRGB(15, 15, 15) -- Sangat gelap dan nyaman di mata
+		Lighting.Ambient = Color3.fromRGB(10, 10, 10)
+		
+		for _, v in pairs(Lighting:GetChildren()) do
+			if v:IsA("PostEffect") or v:IsA("Atmosphere") or v:IsA("Sky") or v:IsA("Clouds") then
+				v:Destroy()
+			end
+		end
+
+		for _, v in pairs(Workspace:GetDescendants()) do
+			if v:IsA("BasePart") then
+				v.CastShadow = false
+				v.Material = Enum.Material.SmoothPlastic
+				v.Color = Color3.fromRGB(70, 70, 70)
+				
+				for _, child in pairs(v:GetChildren()) do
+					if child:IsA("Texture") or child:IsA("Decal") then
+						child:Destroy()
+					end
+				end
+			elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+				v.Enabled = false
+			end
+		end
+	else
+		Lighting.GlobalShadows = true
+		Lighting.Brightness = 2
+		Lighting.ClockTime = 14
+		Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+		Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+	end
+end)
+
+SettingsBtn.MouseButton1Click:Connect(function()
+	ConfigWindow.Visible = not ConfigWindow.Visible
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+end)
+
+-- 2. Remover Acessórios
+remAccBtn.MouseButton1Click:Connect(function()
+	remAccActive = not remAccActive
+	toggleState(remAccBtn, remAccCir, remAccActive)
+	
+	if remAccActive then
+		for _, char in pairs(Workspace:GetChildren()) do
+			if char:FindFirstChildOfClass("Humanoid") then
+				for _, v in pairs(char:GetChildren()) do
+					if v:IsA("Accessory") then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	end
+end)
+
+-- 3. Remover Roupas
+remClotBtn.MouseButton1Click:Connect(function()
+    remClotActive = not remClotActive
+    toggleState(remClotBtn, remClotCir, remClotActive)
+    
+    if remClotActive then
+        for _, char in pairs(Workspace:GetChildren()) do
+            if char:FindFirstChildOfClass("Humanoid") then
+                for _, v in pairs(char:GetChildren()) do
+                    if v:IsA("Clothing") or v:IsA("ShirtGraphic") then
+                        v:Destroy()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 4. Contador de FPS (Rainbow/Pelangi Effect)
+local fpsLabel = Instance.new("TextLabel")
+fpsLabel.Size = UDim2.new(0, 120, 0, 30)
+fpsLabel.Position = UDim2.new(0, 10, 0, 10)
+fpsLabel.BackgroundTransparency = 1
+fpsLabel.Font = Enum.Font.SourceSansBold
+fpsLabel.TextSize = 18
+fpsLabel.Visible = false
+fpsLabel.Parent = ScreenGui
+
+local lastUpdate = tick()
+local frameCount = 0
+
+RunService.RenderStepped:Connect(function()
+	if fpsActive then
+		local hue = (tick() % 5) / 5
+		fpsLabel.TextColor3 = Color3.fromHSV(hue, 1, 1)
+
+		frameCount = frameCount + 1
+		local now = tick()
+		if now - lastUpdate >= 1 then
+			fpsLabel.Text = "FPS: " .. math.floor(frameCount / (now - lastUpdate))
+			frameCount = 0
+			lastUpdate = now
+		end
+	end
+end)
+
+fpsBtn.MouseButton1Click:Connect(function()
+	fpsActive = not fpsActive
+	toggleState(fpsBtn, fpsCir, fpsActive)
+	fpsLabel.Visible = fpsActive
+end)
+
+-- 5. Stretch Camera
+local cam = Workspace.CurrentCamera
+stretchBtn.MouseButton1Click:Connect(function()
+	stretchActive = not stretchActive
+	toggleState(stretchBtn, stretchCir, stretchActive)
+	
+	if stretchActive then
+		cam.FieldOfView = 95
+	else
+		cam.FieldOfView = 70
+	end
+end)
+
+-- 6. Rainbow Name (Otomatis Aktif Rainbow Karakter Utama & Sembunyikan Username Tengah)
+local customBillboardName = nil
+
+local function setupRainbowName(char)
+	if not rainbowNameActive or not char then return end
+	
+	local head = char:WaitForChild("Head", 5)
+	local humanoid = char:WaitForChild("Humanoid", 5)
+	
+	if humanoid then
+		humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	end
+	
+	if head and not head:FindFirstChild("RainbowNameTag") then
+		local bb = Instance.new("BillboardGui")
+		bb.Name = "RainbowNameTag"
+		bb.Size = UDim2.new(0, 200, 0, 50)
+		bb.StudsOffset = Vector3.new(0, 2.5, 0)
+		bb.AlwaysOnTop = true
+		bb.Parent = head
+		
+		local textLbl = Instance.new("TextLabel")
+		textLbl.Name = "NameText"
+		textLbl.Size = UDim2.new(1, 0, 1, 0)
+		textLbl.BackgroundTransparency = 1
+		textLbl.Font = Enum.Font.SourceSansBold
+		textLbl.Text = LocalPlayer.Name
+		textLbl.TextSize = 20
+		textLbl.Parent = bb
+		
+		customBillboardName = textLbl
+	end
+end
+
+-- Langsung aktifkan Rainbow Name saat pertama kali script dijalankan
+rainbowNameActive = true
+toggleState(rainbowNameBtn, rainbowNameCir, true)
+if LocalPlayer.Character then
+	setupRainbowName(LocalPlayer.Character)
+end
+
+rainbowNameBtn.MouseButton1Click:Connect(function()
+	rainbowNameActive = not rainbowNameActive
+	toggleState(rainbowNameBtn, rainbowNameCir, rainbowNameActive)
+	
+	local char = LocalPlayer.Character
+	local head = char and char:FindFirstChild("Head")
+	local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+	
+	if rainbowNameActive then
+		setupRainbowName(char)
+	else
+		if humanoid then
+			humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+		end
+
+		if head then
+			local tag = head:FindFirstChild("RainbowNameTag")
+			if tag then tag:Destroy() end
+		end
+		customBillboardName = nil
+	end
+end)
+
+-- Auto re-apply saat karakter respawn
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+	if rainbowNameActive then
+		task.wait(0.5)
+		setupRainbowName(newChar)
+	end
+end)
+
+-- Loop update warna teks nama di atas kepala karakter & handle pointer
+RunService.RenderStepped:Connect(function()
+	if rainbowNameActive then
+		local char = LocalPlayer.Character
+		local head = char and char:FindFirstChild("Head")
+		if head then
+			local tag = head:FindFirstChild("RainbowNameTag")
+			if tag then
+				local textLbl = tag:FindFirstChild("NameText")
+				if textLbl then
+					customBillboardName = textLbl
+					local hue = (tick() % 5) / 5
+					textLbl.TextColor3 = Color3.fromHSV(hue, 1, 1)
+				end
+			end
+		end
+	end
+end)
+
+
+-- // CONFIG SYSTEM LOGIC & CUSTOM NAME \\ --
+local SavedConfigs = {}
+
+local function setFeatureState(featureName, targetState)
+	if featureName == "AntiLag" and antiLagActive ~= targetState then
+		AntiLagToggleBg.MouseButton1Click:Fire()
+	elseif featureName == "RemAcc" and remAccActive ~= targetState then
+		remAccBtn.MouseButton1Click:Fire()
+	elseif featureName == "RemClot" and remClotActive ~= targetState then
+		remClotBtn.MouseButton1Click:Fire()
+	elseif featureName == "FPS" and fpsActive ~= targetState then
+		fpsBtn.MouseButton1Click:Fire()
+	elseif featureName == "Stretch" and stretchActive ~= targetState then
+		stretchBtn.MouseButton1Click:Fire()
+	elseif featureName == "RainbowName" and rainbowNameActive ~= targetState then
+		rainbowNameBtn.MouseButton1Click:Fire()
+	end
+end
+
+CreateConfigBtn.MouseButton1Click:Connect(function()
+	local configName = ConfigNameBox.Text
+	if configName == "" or configName == "Ketik nama config..." then
+		StatusLabel.TextColor3 = Color3.fromRGB(200, 50, 50)
+		StatusLabel.Text = "Gagal: Masukkan nama custom!"
+		return
+	end
+	
+	SavedConfigs[configName] = {
+		AntiLag = antiLagActive,
+		RemAcc = remAccActive,
+		RemClot = remClotActive,
+		FPS = fpsActive,
+		Stretch = stretchActive,
+		RainbowName = rainbowNameActive
+	}
+	
+	StatusLabel.TextColor3 = Color3.fromRGB(50, 150, 50)
+	StatusLabel.Text = "Sukses: Config '" .. configName .. "' dibuat!"
+end)
+
+LoadConfigBtn.MouseButton1Click:Connect(function()
+	local configName = ConfigNameBox.Text
+	if SavedConfigs[configName] then
+		local cfg = SavedConfigs[configName]
+		
+		setFeatureState("AntiLag", cfg.AntiLag)
+		setFeatureState("RemAcc", cfg.RemAcc)
+		setFeatureState("RemClot", cfg.RemClot)
+		setFeatureState("FPS", cfg.FPS)
+		setFeatureState("Stretch", cfg.Stretch)
+		setFeatureState("RainbowName", cfg.RainbowName)
+		
+		StatusLabel.TextColor3 = Color3.fromRGB(50, 100, 200)
+		StatusLabel.Text = "Sukses: Config '" .. configName .. "' dimuat!"
+	else
+		StatusLabel.TextColor3 = Color3.fromRGB(200, 50, 50)
+		StatusLabel.Text = "Gagal: Nama config tidak ditemukan!"
+	end
+end)
