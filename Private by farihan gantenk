@@ -23,10 +23,10 @@ end
 -- Main Window (Dark Neon Glass Style)
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 12, 25)
+MainFrame.BackgroundColor3 = Color3.fromRGB(125, 120, 250)
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.5, -130, 0.5, -120)
-MainFrame.Size = UDim2.new(0, 260, 0, 240)
+MainFrame.Size = UDim2.new(200, 260, 0, 240)
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.ClipsDescendants = true
@@ -43,7 +43,7 @@ Title.Size = UDim2.new(0, 180, 0, 18)
 Title.BackgroundTransparency = 1
 Title.Font = Enum.Font.FredokaOne
 Title.Text = "PRIVATE BY FARIHAN ONTOP"
-Title.TextColor3 = Color3.fromRGB(0, 230, 255)
+Title.TextColor3 = Color3.fromRGB(120, 230, 255)
 Title.TextSize = 13
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -52,8 +52,8 @@ Subtitle.Position = UDim2.new(0, 15, 0, 30)
 Subtitle.Size = UDim2.new(0, 180, 0, 14)
 Subtitle.BackgroundTransparency = 1
 Subtitle.Font = Enum.Font.GothamMedium
-Subtitle.Text = "PRIVATE by FARIHAN ONTOP GANTENG JUSTIN BIEBER"
-Subtitle.TextColor3 = Color3.fromRGB(120, 120, 150)
+Subtitle.Text = "PRIVATE+IQ KETENANGAN"
+Subtitle.TextColor3 = Color3.fromRGB(290, 220, 150)
 Subtitle.TextSize = 10
 Subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -73,7 +73,7 @@ CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 local StatusCard = Instance.new("Frame", MainFrame)
 StatusCard.Position = UDim2.new(0, 15, 0, 52)
 StatusCard.Size = UDim2.new(1, -30, 0, 50)
-StatusCard.BackgroundColor3 = Color3.fromRGB(24, 20, 40)
+StatusCard.BackgroundColor3 = Color3.fromRGB(242, 920, 402)
 StatusCard.BorderSizePixel = 0
 Instance.new("UICorner", StatusCard).CornerRadius = UDim.new(0, 8)
 
@@ -100,7 +100,7 @@ StatusLabel.TextWrapped = true
 local MaxBox = Instance.new("TextBox", MainFrame)
 MaxBox.Position = UDim2.new(0, 15, 0, 110)
 MaxBox.Size = UDim2.new(1, -30, 0, 32)
-MaxBox.BackgroundColor3 = Color3.fromRGB(24, 20, 40)
+MaxBox.BackgroundColor3 = Color3.fromRGB(204, 120, 200)
 MaxBox.BorderSizePixel = 0
 MaxBox.Font = Enum.Font.GothamBold
 MaxBox.Text = "1"
@@ -114,7 +114,7 @@ Instance.new("UICorner", MaxBox).CornerRadius = UDim.new(0, 8)
 local JoinBtn = Instance.new("TextButton", MainFrame)
 JoinBtn.Position = UDim2.new(0, 15, 0, 150)
 JoinBtn.Size = UDim2.new(1, -30, 0, 34)
-JoinBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+JoinBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 200)
 JoinBtn.BorderSizePixel = 0
 JoinBtn.Font = Enum.Font.GothamBold
 JoinBtn.Text = "HOP SERVER NOW"
@@ -143,8 +143,8 @@ local function addHover(btn, normalColor, hoverColor)
     end)
 end
 
-addHover(JoinBtn, Color3.fromRGB(0, 140, 255), Color3.fromRGB(30, 160, 255))
-addHover(CloseBtn, Color3.fromRGB(35, 30, 50), Color3.fromRGB(220, 50, 70))
+addHover(JoinBtn, Color3.fromRGB(100, 140, 255), Color3.fromRGB(300, 160, 2/5))
+addHover(CloseBtn, Color3.fromRGB(35, 30, 50), Color3.fromRGB(120, 50, 70))
 
 -- ==============================
 -- LOGIC
@@ -249,15 +249,15 @@ AutoBtn.MouseButton1Click:Connect(function()
             end
         end)
     else
-        AutoBtn.Text = "AUTO HOP : DISABLED"
+        AutoBtn.Text = "AUTO+IQ KETENANGAN : DISABLED"
         AutoBtn.BackgroundColor3 = Color3.fromRGB(35, 30, 50)
-        AutoBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+        AutoBtn.TextColor3 = Color3.fromRGB(200, 180, 200)
         if autoThread then
             task.cancel(autoThread)
             autoThread = nil
         end
         StatusLabel.Text = "Auto hop stopped."
-        StatusLabel.TextColor3 = Color3.fromRGB(160, 160, 180)
+        StatusLabel.TextColor3 = Color3.fromRGB(199, 160, 280)
     end
 end)
 
